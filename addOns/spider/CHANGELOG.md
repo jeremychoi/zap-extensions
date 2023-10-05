@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Changed
 - Maintenance changes.
+- Do not add seeds to the found list
 
 ## [0.6.0] - 2023-09-07
 ### Changed
