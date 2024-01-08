@@ -33,14 +33,19 @@ import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mockito;
 import org.parosproxy.paros.core.scanner.Alert;
 import org.parosproxy.paros.core.scanner.Plugin.AlertThreshold;
+import org.parosproxy.paros.model.Model;
+import org.parosproxy.paros.model.OptionsParam;
 import org.parosproxy.paros.network.HttpHeader;
 import org.parosproxy.paros.network.HttpMessage;
 import org.parosproxy.paros.network.HttpRequestHeader;
 import org.parosproxy.paros.network.HttpResponseHeader;
 import org.zaproxy.addon.commonlib.CommonAlertTag;
+import org.zaproxy.zap.extension.anticsrf.AntiCsrfParam;
 import org.zaproxy.zap.extension.anticsrf.ExtensionAntiCSRF;
 import org.zaproxy.zap.utils.ZapXmlConfiguration;
 
@@ -48,6 +53,7 @@ class CsrfCountermeasuresScanRuleUnitTest extends PassiveScannerTest<CsrfCounter
 
     private ExtensionAntiCSRF extensionAntiCSRFMock;
     private List<String> antiCsrfTokenNames;
+    private AntiCsrfParam antiCsrfParam;
     private HttpMessage msg;
 
     @BeforeEach
@@ -55,12 +61,17 @@ class CsrfCountermeasuresScanRuleUnitTest extends PassiveScannerTest<CsrfCounter
         antiCsrfTokenNames = new ArrayList<>();
         antiCsrfTokenNames.add("token");
         antiCsrfTokenNames.add("csrfToken");
+        antiCsrfTokenNames.add("csrf-token");
 
         extensionAntiCSRFMock = mock(ExtensionAntiCSRF.class);
         Mockito.lenient()
                 .when(extensionAntiCSRFMock.getAntiCsrfTokenNames())
                 .thenReturn(antiCsrfTokenNames);
-
+        OptionsParam options = Model.getSingleton().getOptionsParam();
+        options.load(new ZapXmlConfiguration());
+        antiCsrfParam = new AntiCsrfParam();
+        options.addParamSet(antiCsrfParam);
+        antiCsrfParam.setPartialMatchingEnabled(false);
         rule.setExtensionAntiCSRF(extensionAntiCSRFMock);
         rule.setCsrfIgnoreList("");
         rule.setCSRFIgnoreAttName("");
@@ -120,7 +131,7 @@ class CsrfCountermeasuresScanRuleUnitTest extends PassiveScannerTest<CsrfCounter
         // When
         scanHttpResponseReceive(msg);
         // Then
-        assertEquals(alertsRaised.size(), 0);
+        assertEquals(0, alertsRaised.size());
     }
 
     @Test
@@ -130,7 +141,7 @@ class CsrfCountermeasuresScanRuleUnitTest extends PassiveScannerTest<CsrfCounter
         // When
         scanHttpResponseReceive(msg);
         // Then
-        assertEquals(alertsRaised.size(), 0);
+        assertEquals(0, alertsRaised.size());
     }
 
     @Test
@@ -140,7 +151,7 @@ class CsrfCountermeasuresScanRuleUnitTest extends PassiveScannerTest<CsrfCounter
         // When
         scanHttpResponseReceive(msg);
         // Then
-        assertEquals(alertsRaised.size(), 0);
+        assertEquals(0, alertsRaised.size());
     }
 
     @Test
@@ -151,7 +162,7 @@ class CsrfCountermeasuresScanRuleUnitTest extends PassiveScannerTest<CsrfCounter
         // When
         scanHttpResponseReceive(msg);
         // Then
-        assertEquals(alertsRaised.size(), 0);
+        assertEquals(0, alertsRaised.size());
     }
 
     @Test
@@ -161,9 +172,9 @@ class CsrfCountermeasuresScanRuleUnitTest extends PassiveScannerTest<CsrfCounter
         // When
         scanHttpResponseReceive(msg);
         // Then
-        assertEquals(alertsRaised.size(), 1);
-        assertEquals(alertsRaised.get(0).getWascId(), 9);
-        assertEquals(alertsRaised.get(0).getEvidence(), "<form id=\"no_csrf_token\">");
+        assertEquals(1, alertsRaised.size());
+        assertEquals(9, alertsRaised.get(0).getWascId());
+        assertEquals("<form id=\"no_csrf_token\">", alertsRaised.get(0).getEvidence());
     }
 
     @Test
@@ -182,7 +193,7 @@ class CsrfCountermeasuresScanRuleUnitTest extends PassiveScannerTest<CsrfCounter
         // When
         scanHttpResponseReceive(msg);
         // Then
-        assertEquals(alertsRaised.size(), 1);
+        assertEquals(1, alertsRaised.size());
         assertTrue(
                 alertsRaised
                         .get(0)
@@ -209,7 +220,7 @@ class CsrfCountermeasuresScanRuleUnitTest extends PassiveScannerTest<CsrfCounter
         // When
         scanHttpResponseReceive(msg);
         // Then
-        assertEquals(alertsRaised.size(), 1);
+        assertEquals(1, alertsRaised.size());
         assertTrue(
                 alertsRaised
                         .get(0)
@@ -225,7 +236,36 @@ class CsrfCountermeasuresScanRuleUnitTest extends PassiveScannerTest<CsrfCounter
         // When
         scanHttpResponseReceive(msg);
         // Then
-        assertEquals(alertsRaised.size(), 0);
+        assertEquals(0, alertsRaised.size());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"0, true", "1, false"})
+    void shouldRaiseAlertOrNotBasedOnPartialMatchWhenThereIsOnlyOneFormWithKnownCsrfTokenUsingName(
+            int expectedAlerts, boolean partialMatchingEnabled) {
+        // Given
+        antiCsrfParam.setPartialMatchingEnabled(partialMatchingEnabled);
+        msg.setResponseBody(
+                "<html><head></head><body><form id=\"form_name\"><input type=\"text\" name=\"csrf-token-597zyx\"/><input type=\"submit\"/></form></body></html>");
+        // When
+        scanHttpResponseReceive(msg);
+        // Then
+        assertEquals(expectedAlerts, alertsRaised.size());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"0, true", "1, false"})
+    void
+            shouldRaiseAlertOrNotBasedOnPartialMatchWhenThereIsOnlyOneFormWithKnownCsrfTokenUsingAttribute(
+                    int expectedAlerts, boolean partialMatchingEnabled) {
+        // Given
+        antiCsrfParam.setPartialMatchingEnabled(partialMatchingEnabled);
+        msg.setResponseBody(
+                "<html><head></head><body><form id=\"form_name\"><input type=\"text\" id=\"csrf-token-597zyx\"/><input type=\"submit\"/></form></body></html>");
+        // When
+        scanHttpResponseReceive(msg);
+        // Then
+        assertEquals(expectedAlerts, alertsRaised.size());
     }
 
     @Test
@@ -236,7 +276,7 @@ class CsrfCountermeasuresScanRuleUnitTest extends PassiveScannerTest<CsrfCounter
         // When
         scanHttpResponseReceive(msg);
         // Then
-        assertEquals(alertsRaised.size(), 0);
+        assertEquals(0, alertsRaised.size());
     }
 
     @Test
@@ -247,7 +287,7 @@ class CsrfCountermeasuresScanRuleUnitTest extends PassiveScannerTest<CsrfCounter
         // When
         scanHttpResponseReceive(msg);
         // Then
-        assertEquals(alertsRaised.size(), 0);
+        assertEquals(0, alertsRaised.size());
     }
 
     @Test
@@ -294,9 +334,9 @@ class CsrfCountermeasuresScanRuleUnitTest extends PassiveScannerTest<CsrfCounter
         // Then
         assertEquals(2, alertsRaised.size());
         assertEquals(
-                alertsRaised.get(0).getEvidence(),
-                "<form id=\"zeroth_form\" action=\"someaction\">");
-        assertEquals(alertsRaised.get(1).getEvidence(), "<form id=\"second_form\">");
+                "<form id=\"zeroth_form\" action=\"someaction\">",
+                alertsRaised.get(0).getEvidence());
+        assertEquals("<form id=\"second_form\">", alertsRaised.get(1).getEvidence());
     }
 
     @Test

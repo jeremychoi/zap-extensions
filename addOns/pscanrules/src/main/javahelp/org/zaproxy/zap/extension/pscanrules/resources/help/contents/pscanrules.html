@@ -43,6 +43,7 @@ Latest code: <a href="https://github.com/zaproxy/zap-extensions/blob/main/addOns
 <H2>Application Errors</H2>
 Check server responses for HTTP 500 - Internal Server Error type responses or those that contain a known error string. <br>
 <strong>Note:</strong> Matches made within script blocks or files are against the entire content not only comments.<br>
+Skips responses that contain ISO control characters (those which are likely binary files).<br>
 At HIGH Threshold don’t alert on HTTP 500 (but do for other error patterns). Also, such known error strings are much less likely to be relevant in static pages like JS / CSS so these files are only scanned at LOW threshold.<br>
 For Internal Server Error (HTTP 500) the Alert is set to Low risk and in other case it is set to Medium risk.
 
@@ -53,11 +54,14 @@ amount of time needed to passively scan.
 <p>
 Latest code: <a href="https://github.com/zaproxy/zap-extensions/blob/main/addOns/pscanrules/src/main/java/org/zaproxy/zap/extension/pscanrules/ApplicationErrorScanRule.java">ApplicationErrorScanRule.java</a>
 
-<H2>Big Redirect Detected (Potential Sensitive Information Leak)</H2>
+<H2 id="id-10044">Big Redirect Detected (Potential Sensitive Information Leak)</H2>
 This check predicts the size of various redirect type responses and generates an alert if the response is greater than the predicted size. 
 A large redirect response may indicate that although a redirect has taken place the page actually contained content (which may reveal sensitive information, PII, etc.).
+It will also raise an alert if the body of the redirect response contains multiple HREFs.
 <p>
 Latest code: <a href="https://github.com/zaproxy/zap-extensions/blob/main/addOns/pscanrules/src/main/java/org/zaproxy/zap/extension/pscanrules/BigRedirectsScanRule.java">BigRedirectsScanRule.java</a>
+<br>
+Alert ID: <a href="https://www.zaproxy.org/docs/alerts/10044/">10044</a>.
 
 <H2>Cache Control</H2>
 Checks "Cache-Control" response headers against general industry best practice settings for protection of sensitive content.<br>
@@ -180,7 +184,9 @@ Post 2.5.0 you can specify a comma separated list of identifiers in the
 <code>rules.csrf.ignorelist</code> parameter via the Options 'Rule configuration' panel.
 Any FORMs with a name or ID that matches one of these identifiers will be ignored when scanning for missing Anti-CSRF tokens.
 Only use this feature to ignore FORMs that you know are safe, for example search forms.
-Form element names are sorted and de-duplicated when they are printed in the Zap Report.
+Form element names are sorted and de-duplicated when they are printed in the ZAP Report.
+<br>
+Note: The rule also takes into account the Partial match setting within the Anti-CSRF Options.
 <p>
 Latest code: <a href="https://github.com/zaproxy/zap-extensions/blob/main/addOns/pscanrules/src/main/java/org/zaproxy/zap/extension/pscanrules/CsrfCountermeasuresScanRule.java">CsrfCountermeasuresScanRule.java</a>
 

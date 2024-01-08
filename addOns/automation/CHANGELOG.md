@@ -4,6 +4,27 @@ All notable changes to this add-on will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
+### Added
+- Video links in help for Automation Framework jobs.
+
+### Changed
+- Allow to include techs in a context.
+
+### Fixed
+- Show method and URL when outputting the status code mismatch of `requestor` job.
+
+## [0.34.0] - 2023-11-16
+### Added
+- Show column control in the Automation tab to allow to show/hide columns and auto resize them (`Pack All Columns`).
+
+### Fixed
+- Save context.
+
+## [0.33.0] - 2023-10-12
+### Changed
+- Update minimum ZAP version to 2.14.0.
+
+## [0.32.0] - 2023-10-04
 ### Fixed
 - Correct output of array values set to the jobs.
 
@@ -309,6 +330,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - First version.
 
+[0.34.0]: https://github.com/zaproxy/zap-extensions/releases/automation-v0.34.0
+[0.33.0]: https://github.com/zaproxy/zap-extensions/releases/automation-v0.33.0
+[0.32.0]: https://github.com/zaproxy/zap-extensions/releases/automation-v0.32.0
 [0.31.0]: https://github.com/zaproxy/zap-extensions/releases/automation-v0.31.0
 [0.30.0]: https://github.com/zaproxy/zap-extensions/releases/automation-v0.30.0
 [0.29.0]: https://github.com/zaproxy/zap-extensions/releases/automation-v0.29.0

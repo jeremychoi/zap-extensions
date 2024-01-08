@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## Unreleased
 
 
+## [21.29.0] - 2024-01-03
+### Changed
+- Updated with enthec upstream icon and pattern changes.
+
+
+
+## [21.28.0] - 2023-12-04
+### Changed
+- Updated with enthec upstream icon and pattern changes.
+- Dependency updates.
+
+## [21.27.0] - 2023-11-03
+### Changed
+- Updated with enthec upstream icon and pattern changes.
+
+## [21.26.0] - 2023-10-18
+### Changed
+- Updated with last AliasIO/Wappalyzer icon and pattern changes.
+- Updated with first set of icon and pattern changes from enthec/webappanalyzer.
+- Help entries are now identified as 'Technology Detection - Wappalyzer' to simplify searching/filtering.
+
+## [21.25.0] - 2023-10-13
+### Changed
+- Update minimum ZAP version to 2.14.0.
+- Moved from Apache batik libraries to weisJ's jsvg library (thus reducing the size of the add-on).
+
 ## [21.24.0] - 2023-09-07
 ### Changed
 - Dependency updates.
@@ -297,6 +323,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - First version
 
 
+[21.29.0]: https://github.com/zaproxy/zap-extensions/releases/wappalyzer-v21.29.0
+[21.28.0]: https://github.com/zaproxy/zap-extensions/releases/wappalyzer-v21.28.0
+[21.27.0]: https://github.com/zaproxy/zap-extensions/releases/wappalyzer-v21.27.0
+[21.26.0]: https://github.com/zaproxy/zap-extensions/releases/wappalyzer-v21.26.0
+[21.25.0]: https://github.com/zaproxy/zap-extensions/releases/wappalyzer-v21.25.0
 [21.24.0]: https://github.com/zaproxy/zap-extensions/releases/wappalyzer-v21.24.0
 [21.23.0]: https://github.com/zaproxy/zap-extensions/releases/wappalyzer-v21.23.0
 [21.22.0]: https://github.com/zaproxy/zap-extensions/releases/wappalyzer-v21.22.0

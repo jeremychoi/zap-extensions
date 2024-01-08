@@ -30,6 +30,7 @@
 // ZAP: 2020/07/24 Normalise scan rule class names.
 package org.zaproxy.zap.extension.ascanrules;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -41,7 +42,8 @@ import org.parosproxy.paros.core.scanner.Category;
 import org.parosproxy.paros.network.HttpMessage;
 import org.zaproxy.addon.commonlib.CommonAlertTag;
 
-public class CrlfInjectionScanRule extends AbstractAppParamPlugin {
+public class CrlfInjectionScanRule extends AbstractAppParamPlugin
+        implements CommonActiveScanRuleInfo {
 
     /** Prefix for internationalised messages used by this rule */
     private static final String MESSAGE_PREFIX = "ascanrules.crlfinjection.";
@@ -127,17 +129,20 @@ public class CrlfInjectionScanRule extends AbstractAppParamPlugin {
     private boolean checkResult(HttpMessage msg, String param, String attack) {
         Matcher matcher = patternCookieTamper.matcher(msg.getResponseHeader().toString());
         if (matcher.find()) {
-            newAlert()
-                    .setConfidence(Alert.CONFIDENCE_MEDIUM)
-                    .setParam(param)
-                    .setAttack(attack)
-                    .setEvidence(matcher.group())
-                    .setMessage(msg)
-                    .raise();
+            buildAlert(param, attack, matcher.group(), msg).raise();
             return true;
         }
 
         return false;
+    }
+
+    private AlertBuilder buildAlert(String param, String attack, String evidence, HttpMessage msg) {
+        return newAlert()
+                .setConfidence(Alert.CONFIDENCE_MEDIUM)
+                .setParam(param)
+                .setAttack(attack)
+                .setEvidence(evidence)
+                .setMessage(msg);
     }
 
     @Override
@@ -158,5 +163,16 @@ public class CrlfInjectionScanRule extends AbstractAppParamPlugin {
     @Override
     public int getWascId() {
         return 25;
+    }
+
+    @Override
+    public List<Alert> getExampleAlerts() {
+        return List.of(
+                buildAlert(
+                                "years",
+                                "any\r\nSet-cookie: Tamper=4bedd5d4-667f-4cc4-9f22-3bc89cb165fa",
+                                "Set-cookie: Tamper=d1832a2d-d16e-454d-bc79-852a6602d3b1",
+                                null)
+                        .build());
     }
 }

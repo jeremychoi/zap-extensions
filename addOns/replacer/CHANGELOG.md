@@ -4,7 +4,16 @@ All notable changes to this add-on will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
+### Added
+- Video link in help for Automation Framework job.
 
+## [16] - 2023-11-30
+### Changed
+- Allow to replace (change or remove) the Host header (Issue 5475).
+
+## [15] - 2023-10-12
+### Changed
+- Update minimum ZAP version to 2.14.0.
 
 ## [14] - 2023-09-07
 ### Added
@@ -94,6 +103,8 @@ the dialogue when other match types are selected.
 
 - First version
 
+[16]: https://github.com/zaproxy/zap-extensions/releases/replacer-v16
+[15]: https://github.com/zaproxy/zap-extensions/releases/replacer-v15
 [14]: https://github.com/zaproxy/zap-extensions/releases/replacer-v14
 [13]: https://github.com/zaproxy/zap-extensions/releases/replacer-v13
 [12]: https://github.com/zaproxy/zap-extensions/releases/replacer-v12

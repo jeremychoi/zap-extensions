@@ -248,9 +248,9 @@ public class ReportDialog extends StandardFieldsDialog {
 
         this.addComboField(TAB_TEMPLATE, FIELD_THEME, themes, null);
 
-        this.addCustomComponent(TAB_TEMPLATE, FIELD_SECTIONS, getSectionsScrollPane());
+        ReflectionUtils.addCustomComponent(
+                this, TAB_TEMPLATE, FIELD_SECTIONS, getSectionsScrollPane(), 1.0D);
         resetTemplateFields();
-        this.addPadding(TAB_TEMPLATE);
 
         setReportName();
         ((JComboBox<?>) this.getField(FIELD_TEMPLATE))
@@ -330,6 +330,7 @@ public class ReportDialog extends StandardFieldsDialog {
             }
         }
         getSectionsScrollPane().setViewportView(sectionPanel);
+        repaint();
     }
 
     private void setReportName() {

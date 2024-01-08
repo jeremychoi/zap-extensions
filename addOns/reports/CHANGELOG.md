@@ -4,6 +4,21 @@ All notable changes to this add-on will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
+### Fixed
+- Ensure the Sections' options are fully shown always in Generate Report Dialog (Issue 8259).
+
+## [0.27.0] - 2023-12-19
+### Changed
+- Dependency updates.
+
+### Fixed
+- Addressed warnings caused by Risk and Confidence HTML template.
+
+## [0.26.0] - 2023-10-12
+### Changed
+- Update minimum ZAP version to 2.14.0.
+
+## [0.25.0] - 2023-10-04
 ### Changed
 - Depend on newer versions of Automation Framework and Common Library add-ons (Related to Issue 7961).
 - Update JavaDoc links to always link to latest version of ZAP.
@@ -235,6 +250,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - First version.
 
+[0.27.0]: https://github.com/zaproxy/zap-extensions/releases/reports-v0.27.0
+[0.26.0]: https://github.com/zaproxy/zap-extensions/releases/reports-v0.26.0
+[0.25.0]: https://github.com/zaproxy/zap-extensions/releases/reports-v0.25.0
 [0.24.0]: https://github.com/zaproxy/zap-extensions/releases/reports-v0.24.0
 [0.23.0]: https://github.com/zaproxy/zap-extensions/releases/reports-v0.23.0
 [0.22.0]: https://github.com/zaproxy/zap-extensions/releases/reports-v0.22.0

@@ -20,6 +20,7 @@
 package org.zaproxy.zap.extension.ascanrules;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.apache.commons.codec.DecoderException;
@@ -37,7 +38,8 @@ import org.zaproxy.addon.commonlib.CommonAlertTag;
 /**
  * @author yhawke (2014)
  */
-public class PaddingOracleScanRule extends AbstractAppParamPlugin {
+public class PaddingOracleScanRule extends AbstractAppParamPlugin
+        implements CommonActiveScanRuleInfo {
 
     // List of all possible errors
     static final String[] ERROR_PATTERNS = {
@@ -116,6 +118,20 @@ public class PaddingOracleScanRule extends AbstractAppParamPlugin {
         // do nothing
     }
 
+    private AlertBuilder buildAlert(String paramName, String attack, String evidence) {
+        return newAlert()
+                .setConfidence(Alert.CONFIDENCE_MEDIUM)
+                .setParam(paramName)
+                .setAttack(attack)
+                .setEvidence(evidence);
+    }
+
+    @Override
+    public List<Alert> getExampleAlerts() {
+        return List.of(
+                buildAlert("query", "https://example.com/search", "BadPaddingException").build());
+    }
+
     /**
      * Scan for Padding Oracle Vulnerabilities
      *
@@ -171,11 +187,10 @@ public class PaddingOracleScanRule extends AbstractAppParamPlugin {
                                 paramName,
                                 encodedValue);
 
-                        newAlert()
-                                .setConfidence(Alert.CONFIDENCE_MEDIUM)
-                                .setParam(paramName)
-                                .setAttack(msg.getRequestHeader().getURI().toString())
-                                .setEvidence(msg.getResponseHeader().getReasonPhrase())
+                        buildAlert(
+                                        paramName,
+                                        msg.getRequestHeader().getURI().toString(),
+                                        msg.getResponseHeader().getReasonPhrase())
                                 .setMessage(msg)
                                 .raise();
                     }
@@ -201,11 +216,10 @@ public class PaddingOracleScanRule extends AbstractAppParamPlugin {
                                     paramName,
                                     encodedValue);
 
-                            newAlert()
-                                    .setConfidence(Alert.CONFIDENCE_MEDIUM)
-                                    .setParam(paramName)
-                                    .setAttack(msg.getRequestHeader().getURI().toString())
-                                    .setEvidence(pattern)
+                            buildAlert(
+                                            paramName,
+                                            msg.getRequestHeader().getURI().toString(),
+                                            pattern)
                                     .setMessage(msg)
                                     .raise();
 

@@ -21,6 +21,8 @@ package org.zaproxy.zap.extension.scripts;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
@@ -36,6 +38,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import javax.swing.AbstractAction;
+import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -44,10 +48,13 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+import javax.swing.border.EmptyBorder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.parosproxy.paros.Constant;
+import org.parosproxy.paros.control.Control;
 import org.parosproxy.paros.extension.AbstractPanel;
 import org.zaproxy.zap.ZAP;
 import org.zaproxy.zap.extension.script.ScriptWrapper;
@@ -64,17 +71,19 @@ public class ConsolePanel extends AbstractPanel {
 
     private static final String BASE_NAME_SCRIPT_EXECUTOR_THREAD = "ZAP-ScriptExecutor-";
     private static final ImageIcon AUTO_COMPLETE_ICON =
-            new ImageIcon(
-                    OutputPanel.class.getResource(
-                            "/org/zaproxy/zap/extension/scripts/resources/icons/ui-text-field-suggestion.png"));
+            getImageIcon(
+                    "/org/zaproxy/zap/extension/scripts/resources/icons/ui-text-field-suggestion.png");
     private static final String THREAD_NAME = "ZAP-ScriptChangeOnDiskThread";
 
     private ExtensionScriptsUI extension;
     private JPanel panelContent = null;
     private JToolBar panelToolbar = null;
+    private JButton saveButton;
+    private ZapToggleButton enableButton;
     private JButton runButton = null;
     private JButton stopButton = null;
     private ZapToggleButton autoCompleteButton = null;
+    private JButton optionsButton;
     private JLabel scriptTitle = null;
     private CommandPanel commandPanel = null;
     private OutputPanel outputPanel = null;
@@ -96,9 +105,14 @@ public class ConsolePanel extends AbstractPanel {
                 Constant.messages.getString("scripts.changed.replace")
             };
 
+    // TODO: Remove after this add-on depends on ZAP 2.15.0
+    private final Object scriptLock = new Object();
+
     private Map<ScriptWrapper, Integer> scriptWrapperToOffset = new HashMap<>();
 
     private static final Logger LOGGER = LogManager.getLogger(ConsolePanel.class);
+    private static final int DEFAULT_MODIFIER =
+            Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 
     public ConsolePanel(ExtensionScriptsUI extension) {
         super();
@@ -136,10 +150,12 @@ public class ConsolePanel extends AbstractPanel {
     }
 
     private boolean isScriptUpdatedOnDisk() {
-        if (script != null) {
+        if (script == null) {
+            return false;
+        }
+        synchronized (scriptLock) {
             return script.hasChangedOnDisk();
         }
-        return false;
     }
 
     private void startPollingForChanges() {
@@ -198,7 +214,9 @@ public class ConsolePanel extends AbstractPanel {
                     () -> {
                         if (getSaveOrReplaceScriptChoice() == JOptionPane.YES_OPTION) {
                             try {
-                                extension.getExtScript().saveScript(script);
+                                synchronized (scriptLock) {
+                                    extension.getExtScript().saveScript(script);
+                                }
                             } catch (IOException e) {
                                 LOGGER.error(e.getMessage(), e);
                             }
@@ -266,23 +284,26 @@ public class ConsolePanel extends AbstractPanel {
         }
     }
 
-    private javax.swing.JToolBar getPanelToolbar() {
+    private JToolBar getPanelToolbar() {
         if (panelToolbar == null) {
-
-            panelToolbar = new javax.swing.JToolBar();
-            panelToolbar.setLayout(new java.awt.GridBagLayout());
+            panelToolbar = new JToolBar();
             panelToolbar.setEnabled(true);
             panelToolbar.setFloatable(false);
             panelToolbar.setRollover(true);
-            panelToolbar.setPreferredSize(new java.awt.Dimension(800, 30));
             panelToolbar.setFont(FontUtils.getFont("Dialog"));
-            panelToolbar.setName("ParamsToolbar");
+            panelToolbar.setName("Script Console Toolbar");
 
-            panelToolbar.add(this.getRunButton(), LayoutHelper.getGBC(0, 0, 1, 0.0D));
-            panelToolbar.add(this.getStopButton(), LayoutHelper.getGBC(1, 0, 1, 0.0D));
-            panelToolbar.add(this.getAutoCompleteButton(), LayoutHelper.getGBC(2, 0, 1, 0.0D));
-            panelToolbar.add(this.getScriptTitle(), LayoutHelper.getGBC(3, 0, 1, 0.0D));
-            panelToolbar.add(new JLabel(), LayoutHelper.getGBC(20, 0, 1, 1.0D)); // Filler
+            panelToolbar.add(getSaveButton());
+            panelToolbar.add(getEnableButton());
+            panelToolbar.addSeparator();
+            panelToolbar.add(getRunButton());
+            panelToolbar.add(getStopButton());
+            panelToolbar.addSeparator();
+            panelToolbar.add(getAutoCompleteButton());
+            panelToolbar.addSeparator();
+            panelToolbar.add(getScriptTitle());
+            panelToolbar.add(Box.createHorizontalGlue());
+            panelToolbar.add(getOptionsButton());
         }
         return panelToolbar;
     }
@@ -290,6 +311,7 @@ public class ConsolePanel extends AbstractPanel {
     private JLabel getScriptTitle() {
         if (scriptTitle == null) {
             scriptTitle = new JLabel();
+            scriptTitle.setBorder(new EmptyBorder(0, 5, 0, 5));
         }
         return scriptTitle;
     }
@@ -328,15 +350,57 @@ public class ConsolePanel extends AbstractPanel {
         }
     }
 
+    private JButton getSaveButton() {
+        if (saveButton == null) {
+            saveButton = new JButton();
+            saveButton.setIcon(getImageIcon("/resource/icon/16/096.png")); // diskette icon
+            saveButton.setToolTipText(Constant.messages.getString("scripts.toolbar.tooltip.save"));
+            saveButton.setEnabled(false);
+
+            saveButton.addActionListener(
+                    e -> {
+                        if (script == null) {
+                            return;
+                        }
+                        extension.getScriptsPanel().saveScript(script);
+                    });
+        }
+        return saveButton;
+    }
+
+    private ZapToggleButton getEnableButton() {
+        if (enableButton == null) {
+            enableButton = new ZapToggleButton();
+            enableButton.setEnabled(false);
+
+            enableButton.setIcon(
+                    getImageIcon(
+                            "/org/zaproxy/zap/extension/scripts/resources/icons/cross-white.png"));
+            enableButton.setToolTipText(
+                    Constant.messages.getString("scripts.toolbar.tooltip.enable"));
+
+            enableButton.setSelectedIcon(
+                    getImageIcon(
+                            "/org/zaproxy/zap/extension/scripts/resources/icons/tick-circle.png"));
+            enableButton.setSelectedToolTipText(
+                    Constant.messages.getString("scripts.toolbar.tooltip.disable"));
+
+            enableButton.addActionListener(
+                    e -> {
+                        if (script == null || !script.getType().isEnableable()) {
+                            return;
+                        }
+                        extension.getExtScript().setEnabled(script, enableButton.isSelected());
+                    });
+        }
+        return enableButton;
+    }
+
     private JButton getRunButton() {
         if (runButton == null) {
             runButton = new JButton();
             runButton.setText(Constant.messages.getString("scripts.toolbar.label.run"));
-            runButton.setIcon(
-                    DisplayUtils.getScaledIcon(
-                            new ImageIcon(
-                                    ZAP.class.getResource(
-                                            "/resource/icon/16/131.png")))); // 'play' icon
+            runButton.setIcon(getImageIcon("/resource/icon/16/131.png")); // 'play' icon
             runButton.setToolTipText(Constant.messages.getString("scripts.toolbar.tooltip.run"));
             runButton.setEnabled(false);
 
@@ -348,11 +412,7 @@ public class ConsolePanel extends AbstractPanel {
     private JButton getStopButton() {
         if (stopButton == null) {
             stopButton = new JButton();
-            stopButton.setIcon(
-                    DisplayUtils.getScaledIcon(
-                            new ImageIcon(
-                                    ZAP.class.getResource(
-                                            "/resource/icon/16/142.png")))); // 'stop' icon
+            stopButton.setIcon(getImageIcon("/resource/icon/16/142.png")); // 'stop' icon
             stopButton.setToolTipText(Constant.messages.getString("scripts.toolbar.tooltip.stop"));
             stopButton.setEnabled(false);
 
@@ -364,8 +424,8 @@ public class ConsolePanel extends AbstractPanel {
     private ZapToggleButton getAutoCompleteButton() {
         if (autoCompleteButton == null) {
             autoCompleteButton = new ZapToggleButton();
-            autoCompleteButton.setIcon(DisplayUtils.getScaledIcon(AUTO_COMPLETE_ICON));
-            autoCompleteButton.setSelectedIcon(DisplayUtils.getScaledIcon(AUTO_COMPLETE_ICON));
+            autoCompleteButton.setIcon(AUTO_COMPLETE_ICON);
+            autoCompleteButton.setSelectedIcon(AUTO_COMPLETE_ICON);
             autoCompleteButton.setToolTipText(
                     Constant.messages.getString("scripts.toolbar.tooltip.autocomplete.disabled"));
             autoCompleteButton.setSelectedToolTipText(
@@ -376,6 +436,24 @@ public class ConsolePanel extends AbstractPanel {
                     e -> getCommandPanel().setAutoCompleteEnabled(autoCompleteButton.isSelected()));
         }
         return autoCompleteButton;
+    }
+
+    private JButton getOptionsButton() {
+        if (optionsButton == null) {
+            optionsButton = new JButton();
+            optionsButton.setToolTipText(
+                    Constant.messages.getString("scripts.toolbar.tooltip.consoleOptions"));
+            optionsButton.setIcon(getImageIcon("/resource/icon/16/041.png"));
+
+            optionsButton.addActionListener(
+                    e ->
+                            Control.getSingleton()
+                                    .getMenuToolsControl()
+                                    .options(
+                                            Constant.messages.getString(
+                                                    "scripts.options.console.title")));
+        }
+        return optionsButton;
     }
 
     private void runScript() {
@@ -409,15 +487,20 @@ public class ConsolePanel extends AbstractPanel {
             thread.terminate();
         }
         runnableScriptsToThreadMap.remove(script);
-        updateButtonsState();
+        updateRunButtonStates();
     }
 
     private KeyListener getKeyListener() {
         if (listener == null) {
             listener =
                     new KeyListener() {
+
                         @Override
                         public void keyTyped(KeyEvent e) {
+                            // Ignore ctrl+S character code
+                            if (e.getKeyChar() == KeyEvent.VK_PAUSE) {
+                                return;
+                            }
                             if (script != null && !script.isChanged()) {
                                 extension.getExtScript().setChanged(script, true);
                             }
@@ -437,11 +520,35 @@ public class ConsolePanel extends AbstractPanel {
         return listener;
     }
 
-    private CommandPanel getCommandPanel() {
+    private static ImageIcon getImageIcon(String resourceName) {
+        return DisplayUtils.getScaledIcon(
+                new ImageIcon(ConsolePanel.class.getResource(resourceName)));
+    }
+
+    CommandPanel getCommandPanel() {
         if (commandPanel == null) {
             commandPanel = new CommandPanel(getKeyListener());
             commandPanel.setEditable(false);
             commandPanel.setCommandScript(Constant.messages.getString("scripts.welcome.cmd"));
+            String saveScriptActionKey = "scripts.action.saveScript";
+            commandPanel
+                    .getInputMap(WHEN_IN_FOCUSED_WINDOW)
+                    .put(
+                            KeyStroke.getKeyStroke(KeyEvent.VK_S, DEFAULT_MODIFIER),
+                            saveScriptActionKey);
+            commandPanel
+                    .getActionMap()
+                    .put(
+                            saveScriptActionKey,
+                            new AbstractAction() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    if (script == null) {
+                                        return;
+                                    }
+                                    extension.getScriptsPanel().saveScript(script);
+                                }
+                            });
         }
         return commandPanel;
     }
@@ -487,6 +594,8 @@ public class ConsolePanel extends AbstractPanel {
         getCommandPanel().setEditable(false);
         getCommandPanel().clear();
         getCommandPanel().setCommandScript(Constant.messages.getString("scripts.welcome.cmd"));
+        getSaveButton().setEnabled(false);
+        getEnableButton().setEnabled(false);
         setButtonsAllowRunScript(false);
         getScriptTitle().setText("");
     }
@@ -524,7 +633,7 @@ public class ConsolePanel extends AbstractPanel {
         }
 
         getCommandPanel().setEditable(script.getEngine().isTextBased());
-        updateButtonsState();
+        updateButtonStates();
         updateCommandPanelState(script);
         if (isScriptUpdatedOnDisk()) {
             promptUserToKeepOrReplaceScript();
@@ -541,6 +650,10 @@ public class ConsolePanel extends AbstractPanel {
         if (!isTabVisible()) {
             setTabFocus();
         }
+    }
+
+    Object getScriptLock() {
+        return scriptLock;
     }
 
     /**
@@ -578,9 +691,23 @@ public class ConsolePanel extends AbstractPanel {
         this.script = null;
 
         getCommandPanel().setEditable(false);
+        getSaveButton().setEnabled(false);
+        getEnableButton().setEnabled(false);
         setButtonsAllowRunScript(false);
         updateCommandPanelState(template);
         setTabFocus();
+    }
+
+    void updateButtonStates() {
+        updateRunButtonStates();
+        if (script != null) {
+            getSaveButton().setEnabled(script.isChanged() && script.getEngine() != null);
+            getEnableButton().setEnabled(script.getType().isEnableable());
+            getEnableButton().setSelected(script.isEnabled());
+        } else {
+            getSaveButton().setEnabled(false);
+            getEnableButton().setEnabled(false);
+        }
     }
 
     /**
@@ -599,7 +726,7 @@ public class ConsolePanel extends AbstractPanel {
      * @see #updateButtonsStateScriptRunning()
      * @see ScriptWrapper#isRunnableStandalone()
      */
-    private void updateButtonsState() {
+    private void updateRunButtonStates() {
         // The only type that can be run directly from the console
         if (script == null || !script.isRunnableStandalone()) {
             setButtonsAllowRunScript(false);
@@ -632,7 +759,7 @@ public class ConsolePanel extends AbstractPanel {
      * @param allow {@code true} to allow to run a script, {@code false} otherwise
      * @see #getRunButton()
      * @see #getStopButton()
-     * @see #updateButtonsState()
+     * @see #updateRunButtonStates()
      * @see #updateButtonsStateScriptRunning()
      */
     private void setButtonsAllowRunScript(boolean allow) {
@@ -648,7 +775,7 @@ public class ConsolePanel extends AbstractPanel {
      * @see #getRunButton()
      * @see #getStopButton()
      * @see #setButtonsAllowRunScript(boolean)
-     * @see #updateButtonsState()
+     * @see #updateRunButtonStates()
      */
     private void updateButtonsStateScriptRunning() {
         getRunButton().setEnabled(false);
@@ -687,7 +814,7 @@ public class ConsolePanel extends AbstractPanel {
                 if (refScriptExecutorThread != null) {
                     refScriptExecutorThread.clear();
                 }
-                updateButtonsState();
+                updateRunButtonStates();
             }
         }
 

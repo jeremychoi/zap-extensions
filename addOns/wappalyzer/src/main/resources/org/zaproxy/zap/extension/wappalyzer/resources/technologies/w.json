@@ -246,6 +246,21 @@
     "scriptSrc": "/wp-content/plugins/wp-maintenance-mode/.+wpmm\\.js(?:\\?ver=(\\d+(?:\\.\\d+)+))?\\;version:\\1",
     "website": "https://github.com/andrianvaleanu/WP-Maintenance-Mode"
   },
+  "WP Portfolio": {
+    "cats": [
+      87
+    ],
+    "description": "WP Portfolio is a premium standalone WordPress plugin designed for creating and showcasing portfolios.",
+    "icon": "WP Portfolio.svg",
+    "pricing": [
+      "mid",
+      "recurring",
+      "onetime"
+    ],
+    "requires": "WordPress",
+    "scriptSrc": "/wp-content/plugins/astra-portfolio/.+\\.js(?:\\?ver=(\\d+(?:\\.\\d+)+))?\\;version:\\1",
+    "website": "https://wpportfolio.net"
+  },
   "WP Puzzle Basic": {
     "cats": [
       80
@@ -935,6 +950,23 @@
     "saas": true,
     "website": "https://www.webtoffee.com/product/woocommerce-stripe-payment-gateway/"
   },
+  "WebWave": {
+    "cats": [
+      51
+    ],
+    "description": "WebWave is a drag and drop website builder.",
+    "icon": "WebWave.svg",
+    "js": {
+      "webwave.getAppVersion": "",
+      "webwaveFontsLoadedFlag": ""
+    },
+    "pricing": [
+      "freemium",
+      "low",
+      "recurring"],
+    "saas": true,
+    "website": "https://webwavecms.com"
+  },
   "WebZi": {
     "cats": [
       1,
@@ -1034,6 +1066,15 @@
     "saas": true,
     "website": "https://webflow.com/ecommerce"
   },
+  "Web Font Loader": {
+    "cats": [
+      59
+    ],
+    "description": "WebFont Loader is a versatile JavaScript library that provides enhanced control and flexibility in managing web fonts.",
+    "oss": true,
+    "scriptSrc": "(?:((?:\\d+\\.)+\\d+)\\/)?webfontloader(?:\\.min)?(?:[-\\.][\\d\\w]{0,32})?\\.js\\;version:\\1",
+    "website": "https://github.com/typekit/webfontloader"
+  },
   "Webgains": {
     "cats": [
       71
@@ -1061,7 +1102,7 @@
     "cats": [
       1
     ],
-    "cpe": "cpe:2.3:a:weblication:cms_core_&_grid:*:*:*:*:*:*:*:*",
+    "cpe": "cpe:2.3:a:weblication:cms_core_\\&_grid:*:*:*:*:*:*:*:*",
     "description": "Weblication is an enterprise-class website content management system developed by Scholl Communications AG in Germany.",
     "icon": "Weblication.svg",
     "implies": [
@@ -2007,7 +2048,8 @@
     "description": "WordPress is a free and open-source content management system written in PHP and paired with a MySQL or MariaDB database. Features include a plugin architecture and a template system.",
     "headers": {
       "X-Pingback": "/xmlrpc\\.php$",
-      "link": "rel=\"https://api\\.w\\.org/\""
+      "link": "rel=\"https://api\\.w\\.org/\"",
+      "X-Redirect-By": "WordPress"
     },
     "html": [
       "<link rel=[\"']stylesheet[\"'] [^>]+/wp-(?:content|includes)/",
@@ -2246,6 +2288,21 @@
     "scriptSrc": "\\.worldztool\\.com/",
     "website": "https://www.worldz-business.net"
   },
+  "WOW": {
+    "cats": [
+      12,
+      18,
+      25
+    ],
+    "description":"Reveal CSS animation as you scroll down a page.",
+    "pricing": [
+      "low",
+      "onetime"
+    ],
+    "oss": true,
+    "scriptSrc": "wow(?:\\.min)?\\.js(?:\\?ver=((?:\\d+\\.)+\\d+))?\\;version:\\1",
+    "website": "https://www.delac.io/WOW"
+  },
   "Wowza Video Player": {
     "cats": [
       14
@@ -2362,6 +2419,15 @@
     "saas": true,
     "scriptSrc": "\\.sistemawbuy\\.com\\.br/",
     "website": "https://www.wbuy.com.br"
+  },
+  "waitForImages": {
+    "cats": [
+      59
+    ],
+    "description": "waitForImages is a lightweight, high-performance JavaScript library that simplifies the handling of image preloading events.",
+    "oss": true,
+    "scriptSrc": "(?:((?:\\d+\\.)+\\d+)\\/(?:jquery\\.)?)?waitforimages(?:-((?:\\d+\\.)+\\d+)-modded)?(?:\\.min)?\\.js\\;version:\\1\\2",
+    "website": "https://github.com/alexanderdickson/waitForImages"
   },
   "wap.store": {
     "cats": [

@@ -1,13 +1,22 @@
 import net.ltgt.gradle.errorprone.errorprone
+import org.zaproxy.gradle.spotless.ValidateImports
 
 plugins {
     id("com.diffplug.spotless")
-    id("com.github.ben-manes.versions") version "0.47.0"
+    id("org.zaproxy.common") version "0.2.0" apply false
+    id("com.github.ben-manes.versions") version "0.50.0"
     id("org.sonarqube") version "4.3.0.3225"
     id("net.ltgt.errorprone") version "3.1.0"
 }
 
 apply(from = "$rootDir/gradle/ci.gradle.kts")
+
+val validateImports = ValidateImports(
+    mapOf(
+        "import org.apache.commons.lang." to
+            "Import/use classes from Commons Lang 3, instead of Lang 2.",
+    ),
+)
 
 allprojects {
     apply(plugin = "com.diffplug.spotless")
@@ -25,15 +34,15 @@ allprojects {
 
         project.plugins.withType(JavaPlugin::class) {
             java {
-                licenseHeaderFile("$rootDir/gradle/spotless/license.java")
-                googleJavaFormatAosp()
+                bumpThisNumberIfACustomStepChanges(1)
+                custom("validateImports", validateImports)
             }
         }
     }
 
     project.plugins.withType(JavaPlugin::class) {
         dependencies {
-            "errorprone"("com.google.errorprone:error_prone_core:2.20.0")
+            "errorprone"("com.google.errorprone:error_prone_core:2.23.0")
         }
 
         java {
@@ -44,8 +53,6 @@ allprojects {
     }
 
     tasks.withType<JavaCompile>().configureEach {
-        options.encoding = "utf-8"
-        options.compilerArgs = listOf("-Xlint:all", "-Xlint:-path", "-Xlint:-options", "-Werror")
         options.errorprone {
             disableAllChecks.set(true)
             error(

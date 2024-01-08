@@ -59,7 +59,7 @@ import org.zaproxy.addon.commonlib.http.HttpFieldsNames;
  * - Start position 0 (ex: checking magic numbers) [startsWith, not contains]<br>
  * - Response is ASCII compatible (which should include UTF-8 and ISO-8859-1)
  */
-public class HiddenFilesScanRule extends AbstractHostPlugin {
+public class HiddenFilesScanRule extends AbstractHostPlugin implements CommonActiveScanRuleInfo {
 
     private static final String MESSAGE_PREFIX = "ascanrules.hidden.files.";
     private static final int PLUGIN_ID = 40035;
@@ -124,20 +124,18 @@ public class HiddenFilesScanRule extends AbstractHostPlugin {
             int statusCode = testMsg.getResponseHeader().getStatusCode();
             if (isPage200(testMsg)) {
                 String responseBody = testMsg.getResponseBody().toString();
-                // If all the content checks matched then confidence is high
                 boolean matches =
                         doesNotMatch(responseBody, file.getNotContent())
                                 && doesMatch(responseBody, file.getContent())
                                 && doesBinaryMatch(responseBody, file.getBinary());
                 if (matches && !file.isCustom()) {
                     raiseAlert(testMsg, Alert.CONFIDENCE_HIGH, getRisk(), file);
-                } else if (this.getAlertThreshold().equals(AlertThreshold.HIGH)
-                        || file.isCustom()) {
+                } else if (this.getAlertThreshold().equals(AlertThreshold.LOW) || file.isCustom()) {
                     raiseAlert(testMsg, Alert.CONFIDENCE_LOW, getRisk(), file);
                 }
             } else if ((statusCode == HttpStatusCode.UNAUTHORIZED
                             || statusCode == HttpStatusCode.FORBIDDEN)
-                    && this.getAlertThreshold().equals(AlertThreshold.HIGH)) {
+                    && this.getAlertThreshold().equals(AlertThreshold.LOW)) {
                 raiseAlert(testMsg, Alert.CONFIDENCE_LOW, Alert.RISK_INFO, file);
             }
         }

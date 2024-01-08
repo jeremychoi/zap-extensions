@@ -6,6 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## Unreleased
 
 
+## [69] - 2024-01-03
+### Changed
+- Update geckodriver to 0.34.0. Previous version included 0.33.0.
+
+## [68] - 2024-01-03
+### Changed
+- Update geckodriver to 0.34.0.
+
+
+
+## [67] - 2023-12-19
+### Changed
+- Update ChromeDriver to 120.0.6099.109.
+
+
+
+## [66] - 2023-12-07
+### Changed
+- Update ChromeDriver to 120.0.6099.71.
+
+
+
+## [65] - 2023-11-01
+### Changed
+- Update ChromeDriver to 119.0.6045.105.
+
+
+
+## [64] - 2023-10-12
+### Changed
+- Update ChromeDriver to 118.0.5993.70.
+- Update minimum ZAP version to 2.14.0.
+
+## [63] - 2023-10-09
+### Changed
+- Update ChromeDriver to 117.0.5938.149.
+
+
+
 ## [62] - 2023-09-22
 ### Changed
 - Update ChromeDriver to 117.0.5938.92.
@@ -285,6 +324,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - First release: Firefox v0.13.0 Chrome v2.27
 
+[69]: https://github.com/zaproxy/zap-extensions/releases/webdrivermacos-v69
+[68]: https://github.com/zaproxy/zap-extensions/releases/webdrivermacos-v68
+[67]: https://github.com/zaproxy/zap-extensions/releases/webdrivermacos-v67
+[66]: https://github.com/zaproxy/zap-extensions/releases/webdrivermacos-v66
+[65]: https://github.com/zaproxy/zap-extensions/releases/webdrivermacos-v65
+[64]: https://github.com/zaproxy/zap-extensions/releases/webdrivermacos-v64
+[63]: https://github.com/zaproxy/zap-extensions/releases/webdrivermacos-v63
 [62]: https://github.com/zaproxy/zap-extensions/releases/webdrivermacos-v62
 [61]: https://github.com/zaproxy/zap-extensions/releases/webdrivermacos-v61
 [60]: https://github.com/zaproxy/zap-extensions/releases/webdrivermacos-v60

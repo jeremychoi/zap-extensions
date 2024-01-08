@@ -27,6 +27,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.logging.log4j.LogManager;
@@ -44,7 +45,8 @@ import org.zaproxy.addon.commonlib.CommonAlertTag;
  *
  * @author 70pointer
  */
-public class HeartBleedActiveScanRule extends AbstractHostPlugin {
+public class HeartBleedActiveScanRule extends AbstractHostPlugin
+        implements CommonActiveScanRuleInfo {
 
     /** the timeout, which is controlled by the Attack Strength */
     private int timeoutMs = 0;
@@ -1018,14 +1020,7 @@ public class HeartBleedActiveScanRule extends AbstractHostPlugin {
                     if (vulnerable) {
                         LOGGER.debug("Vulnerable");
                         // bingo!
-                        String extraInfo =
-                                Constant.messages.getString(
-                                        MESSAGE_PREFIX + "extrainfo", tlsNames[tlsIndex]);
-                        newAlert()
-                                .setConfidence(Alert.CONFIDENCE_MEDIUM)
-                                .setOtherInfo(extraInfo)
-                                .setMessage(getBaseMsg())
-                                .raise();
+                        buildAlert(tlsIndex).setMessage(getBaseMsg()).raise();
                     }
                     if (is != null) is.close();
                     if (os != null) os.close();
@@ -1047,6 +1042,13 @@ public class HeartBleedActiveScanRule extends AbstractHostPlugin {
         }
     }
 
+    private AlertBuilder buildAlert(int index) {
+        return newAlert()
+                .setConfidence(Alert.CONFIDENCE_MEDIUM)
+                .setOtherInfo(
+                        Constant.messages.getString(MESSAGE_PREFIX + "extrainfo", tlsNames[index]));
+    }
+
     @Override
     public int getRisk() {
         return Alert.RISK_HIGH;
@@ -1065,6 +1067,11 @@ public class HeartBleedActiveScanRule extends AbstractHostPlugin {
     @Override
     public Map<String, String> getAlertTags() {
         return ALERT_TAGS;
+    }
+
+    @Override
+    public List<Alert> getExampleAlerts() {
+        return List.of(buildAlert(1).build());
     }
 
     /**

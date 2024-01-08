@@ -38,6 +38,8 @@ import org.apache.logging.log4j.Logger;
 import org.parosproxy.paros.Constant;
 import org.parosproxy.paros.control.Control;
 import org.parosproxy.paros.control.Control.Mode;
+import org.parosproxy.paros.core.scanner.AbstractPlugin;
+import org.parosproxy.paros.core.scanner.PluginFactory;
 import org.parosproxy.paros.extension.Extension;
 import org.parosproxy.paros.extension.ExtensionAdaptor;
 import org.parosproxy.paros.extension.ExtensionHook;
@@ -51,6 +53,7 @@ import org.zaproxy.zap.ZAP;
 import org.zaproxy.zap.extension.api.API;
 import org.zaproxy.zap.extension.authentication.ExtensionAuthentication;
 import org.zaproxy.zap.extension.help.ExtensionHelp;
+import org.zaproxy.zap.extension.pscan.ExtensionPassiveScan;
 import org.zaproxy.zap.extension.script.ExtensionScript;
 import org.zaproxy.zap.extension.script.ScriptEngineWrapper;
 import org.zaproxy.zap.extension.script.ScriptEventListener;
@@ -58,10 +61,14 @@ import org.zaproxy.zap.extension.script.ScriptNode;
 import org.zaproxy.zap.extension.script.ScriptType;
 import org.zaproxy.zap.extension.script.ScriptUI;
 import org.zaproxy.zap.extension.script.ScriptWrapper;
+import org.zaproxy.zap.extension.scripts.scanrules.ScriptsPassiveScanner;
 import org.zaproxy.zap.extension.stdmenus.PopupContextMenuItemFactory;
 import org.zaproxy.zap.model.Context;
 
-/** The Extension that adds the UI for managing Scripts: scripts tree, scripts console. */
+/**
+ * The Extension that adds the UI for managing Scripts: scripts tree, scripts console and other
+ * scripting related functionality.
+ */
 public class ExtensionScriptsUI extends ExtensionAdaptor implements ScriptEventListener, ScriptUI {
 
     public static final String NAME = "ExtensionScripts";
@@ -78,7 +85,8 @@ public class ExtensionScriptsUI extends ExtensionAdaptor implements ScriptEventL
     /**
      * The templates that should be installed and enabled by default when the add-on is installed
      */
-    private static final String[] BUILT_IN_SCRIPTS = {"Copy as curl command menu.js"};
+    private static final List<BuiltInScript> BUILT_IN_SCRIPTS =
+            List.of(new BuiltInScript("Copy as curl command menu.js", true));
 
     private static final Logger LOGGER = LogManager.getLogger(ExtensionScriptsUI.class);
 
@@ -174,6 +182,7 @@ public class ExtensionScriptsUI extends ExtensionAdaptor implements ScriptEventL
             extensionHook.getHookView().addSelectPanel(getScriptsPanel());
             extensionHook.addSessionListener(new ViewSessionChangedListener());
             extensionHook.getHookView().addWorkPanel(getConsolePanel());
+            extensionHook.addOptionsChangedListener(getConsolePanel().getCommandPanel());
             extensionHook.getHookMenu().addPopupMenuItem(getPopupInvokeScriptWithHttpMessageMenu());
             extensionHook.getHookMenu().addPopupMenuItem(getPopupEnableDisableScript());
             extensionHook.getHookMenu().addPopupMenuItem(getPopupRemoveScript());
@@ -189,6 +198,13 @@ public class ExtensionScriptsUI extends ExtensionAdaptor implements ScriptEventL
             extensionHook.getHookMenu().addPopupMenuItem(getPopupMenuItemSaveScript());
             ExtensionHelp.enableHelpKey(getConsolePanel(), "addon.scripts.console");
             ExtensionHelp.enableHelpKey(getScriptsPanel(), "addon.scripts.tree");
+        }
+    }
+
+    @Override
+    public void optionsLoaded() {
+        if (hasView()) {
+            getConsolePanel().getCommandPanel().optionsChanged(getScriptConsoleOptions());
         }
     }
 
@@ -229,27 +245,59 @@ public class ExtensionScriptsUI extends ExtensionAdaptor implements ScriptEventL
     }
 
     @Override
-    public void postInstall() {
-        // Install and enable the 'built in' scripts
-        for (ScriptWrapper template : this.getExtScript().getTemplates(extScriptType)) {
-            for (String name : BUILT_IN_SCRIPTS) {
-                if (template.getName().equals(name)) {
-                    installBuiltInExtenderScript(template);
+    public void postInit() {
+        if (org.zaproxy.zap.extension.ascan.ScriptsActiveScanner.class.getAnnotation(
+                        Deprecated.class)
+                == null) {
+            PluginFactory.unloadedPlugin((AbstractPlugin) PluginFactory.getLoadedPlugin(50000));
+        }
+        if (org.zaproxy.zap.extension.pscan.scanner.ScriptsPassiveScanner.class.getAnnotation(
+                        Deprecated.class)
+                == null) {
+            var extensionPscan =
+                    Control.getSingleton()
+                            .getExtensionLoader()
+                            .getExtension(ExtensionPassiveScan.class);
+            if (extensionPscan != null) {
+                var installedPscanRule = extensionPscan.getPluginPassiveScanner(50001);
+                var corePscanRuleName =
+                        org.zaproxy.zap.extension.pscan.scanner.ScriptsPassiveScanner.class
+                                .getName();
+                if (installedPscanRule != null
+                        && installedPscanRule.getClass().getName().equals(corePscanRuleName)) {
+                    extensionPscan.removePluginPassiveScanner(installedPscanRule);
+                    extensionPscan.addPluginPassiveScanner(new ScriptsPassiveScanner());
                 }
             }
         }
     }
 
-    private void installBuiltInExtenderScript(ScriptWrapper template) {
+    @Override
+    public void postInstall() {
+        // Install and enable the 'built in' scripts
+        for (ScriptWrapper template : this.getExtScript().getTemplates(extScriptType)) {
+            for (BuiltInScript builtInScript : BUILT_IN_SCRIPTS) {
+                if (template.getName().equals(builtInScript.getName())) {
+                    installBuiltInExtenderScript(template, builtInScript);
+                }
+            }
+        }
+    }
+
+    private void installBuiltInExtenderScript(ScriptWrapper template, BuiltInScript builtInScript) {
         ScriptWrapper script = this.getExtScript().getScript(template.getName());
         if (script == null) {
             // Only install once
             template.setLoadOnStart(true);
-            template.setEnabled(true);
+            boolean enable = true;
+            if (builtInScript.isViewRequired()) {
+                enable = hasView();
+            }
+            template.setEnabled(enable);
             this.getExtScript().addScript(template, false);
             script = this.getExtScript().getScript(template.getName());
             if (script != null) {
-                this.getExtScript().setEnabled(script, true);
+                this.getExtScript().setEnabled(script, enable);
             } else {
                 LOGGER.error("Failed to install built in script {}", template.getName());
             }
@@ -314,7 +362,7 @@ public class ExtensionScriptsUI extends ExtensionAdaptor implements ScriptEventL
         return scriptConsoleOptions;
     }
 
-    private ConsolePanel getConsolePanel() {
+    ConsolePanel getConsolePanel() {
         if (consolePanel == null) {
             consolePanel = new ConsolePanel(this);
             consolePanel.setName(Constant.messages.getString("scripts.panel.title"));
@@ -412,6 +460,7 @@ public class ExtensionScriptsUI extends ExtensionAdaptor implements ScriptEventL
         displayScript(script, true);
     }
 
+    @Override
     public void displayScript(ScriptWrapper script, boolean allowFocus) {
         if (!View.isInitialised()) {
             return;
@@ -674,7 +723,7 @@ public class ExtensionScriptsUI extends ExtensionAdaptor implements ScriptEventL
     @Override
     public void scriptChanged(ScriptWrapper script) {
         if (View.isInitialised()) {
-            this.getScriptsPanel().setButtonStates();
+            getConsolePanel().updateButtonStates();
         }
         if (script.getType().getName().equals(SCRIPT_EXT_TYPE)) {
             // Extender scripts are installed and uninstalled when they are enabled/disabled
@@ -809,6 +858,7 @@ public class ExtensionScriptsUI extends ExtensionAdaptor implements ScriptEventL
         selectNode(node, expand, true);
     }
 
+    @Override
     public void selectNode(ScriptNode node, boolean expand, boolean allowFocus) {
         if (View.isInitialised()) {
             this.getScriptsPanel().showInTree(node, expand, allowFocus);
@@ -956,6 +1006,29 @@ public class ExtensionScriptsUI extends ExtensionAdaptor implements ScriptEventL
         @Override
         public void sessionScopeChanged(Session session) {
             // Nothing to do.
+        }
+    }
+
+    static class BuiltInScript {
+
+        private final String name;
+        private final boolean viewRequired;
+
+        BuiltInScript(String name) {
+            this(name, false);
+        }
+
+        BuiltInScript(String name, boolean viewRequired) {
+            this.name = name;
+            this.viewRequired = viewRequired;
+        }
+
+        String getName() {
+            return name;
+        }
+
+        boolean isViewRequired() {
+            return viewRequired;
         }
     }
 }

@@ -28,7 +28,8 @@ import org.parosproxy.paros.core.scanner.Category;
 import org.parosproxy.paros.network.HttpMessage;
 import org.zaproxy.addon.commonlib.SourceSinkUtils;
 
-public class PersistentXssPrimeScanRule extends AbstractAppParamPlugin {
+public class PersistentXssPrimeScanRule extends AbstractAppParamPlugin
+        implements CommonActiveScanRuleInfo {
 
     /** Prefix for internationalised messages used by this rule */
     private static final String MESSAGE_PREFIX = "ascanrules.persistentxssprime.";
@@ -47,7 +48,7 @@ public class PersistentXssPrimeScanRule extends AbstractAppParamPlugin {
 
     @Override
     public String getDescription() {
-        return Constant.messages.getString(MESSAGE_PREFIX + "misc");
+        return "";
     }
 
     @Override
@@ -57,12 +58,12 @@ public class PersistentXssPrimeScanRule extends AbstractAppParamPlugin {
 
     @Override
     public String getSolution() {
-        return Constant.messages.getString(MESSAGE_PREFIX + "misc");
+        return "";
     }
 
     @Override
     public String getReference() {
-        return Constant.messages.getString(MESSAGE_PREFIX + "misc");
+        return "";
     }
 
     @Override
@@ -90,5 +91,10 @@ public class PersistentXssPrimeScanRule extends AbstractAppParamPlugin {
     @Override
     public int getWascId() {
         return 8;
+    }
+
+    @Override
+    public String getHelpLink() {
+        return getHelpLink(40014);
     }
 }

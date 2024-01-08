@@ -1,4 +1,5 @@
 import me.champeau.gradle.japicmp.JapicmpTask
+import org.cyclonedx.gradle.CycloneDxTask
 import org.zaproxy.gradle.addon.AddOnPlugin
 import org.zaproxy.gradle.addon.AddOnPluginExtension
 import org.zaproxy.gradle.addon.apigen.ApiClientGenExtension
@@ -17,11 +18,11 @@ import org.zaproxy.gradle.crowdin.CrowdinExtension
 plugins {
     eclipse
     jacoco
-    id("org.rm3l.datanucleus-gradle-plugin") version "1.7.0" apply false
-    id("org.zaproxy.add-on") version "0.8.0" apply false
-    id("org.zaproxy.common") version "0.1.0" apply false
+    id("org.cyclonedx.bom") version "1.8.1" apply false
+    id("org.rm3l.datanucleus-gradle-plugin") version "2.0.0" apply false
+    id("org.zaproxy.add-on") version "0.10.0" apply false
     id("org.zaproxy.crowdin") version "0.3.1" apply false
-    id("me.champeau.gradle.japicmp") version "0.4.1" apply false
+    id("me.champeau.gradle.japicmp") version "0.4.2" apply false
 }
 
 description = "Common configuration of the add-ons."
@@ -34,11 +35,6 @@ val mandatoryAddOns = listOf(
 val parentProjects = listOf(
     "webdrivers",
 )
-
-val jacocoToolVersion = "0.8.8"
-jacoco {
-    toolVersion = jacocoToolVersion
-}
 
 val ghReleaseDataProvider = provider {
     subprojects.first().zapAddOn.gitHubRelease
@@ -73,6 +69,9 @@ val createPullRequestNextDevIter by tasks.registering(CreatePullRequest::class) 
 }
 
 val releaseAddOn by tasks.registering
+val allJarsForBom by tasks.registering {
+    dependsOn(project(":testutils").tasks.named(JavaPlugin.JAR_TASK_NAME))
+}
 
 val crowdinExcludedProjects = setOf(
     childProjects.get("dev"),
@@ -90,6 +89,7 @@ subprojects {
     apply(plugin = "eclipse")
     apply(plugin = "java-library")
     apply(plugin = "jacoco")
+    apply(plugin = "org.cyclonedx.bom")
     apply(plugin = "org.rm3l.datanucleus-gradle-plugin")
     apply(plugin = "org.zaproxy.add-on")
     apply(plugin = "org.zaproxy.common")
@@ -125,10 +125,6 @@ subprojects {
         }
     }
 
-    jacoco {
-        toolVersion = jacocoToolVersion
-    }
-
     tasks.named<JacocoReport>("jacocoTestReport") {
         reports {
             xml.required.set(true)
@@ -152,7 +148,7 @@ subprojects {
         }
     }
 
-    val zapGav = "org.zaproxy:zap:2.13.0"
+    val zapGav = "org.zaproxy:zap:2.14.0"
     dependencies {
         "zap"(zapGav)
     }
@@ -163,7 +159,7 @@ subprojects {
         releaseLink.set(project.provider { "https://github.com/zaproxy/zap-extensions/releases/${zapAddOn.addOnId.get()}-v@CURRENT_VERSION@" })
 
         manifest {
-            zapVersion.set("2.13.0")
+            zapVersion.set("2.14.0")
 
             changesFile.set(tasks.named<ConvertMarkdownToHtml>("generateManifestChanges").flatMap { it.html })
             repo.set("https://github.com/zaproxy/zap-extensions/")
@@ -176,6 +172,26 @@ subprojects {
                 from(tasks.named(JavaPlugin.JAR_TASK_NAME))
             }
         }
+    }
+
+    allJarsForBom {
+        dependsOn(tasks.named(JavaPlugin.JAR_TASK_NAME))
+    }
+
+    val cyclonedxBom by tasks.existing(CycloneDxTask::class) {
+        setDestination(layout.buildDirectory.dir("reports/bom-all").get().asFile)
+        mustRunAfter(allJarsForBom)
+    }
+
+    val cyclonedxRuntimeBom by tasks.registering(CycloneDxTask::class) {
+        setIncludeConfigs(listOf(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME))
+        setDestination(layout.buildDirectory.dir("reports/bom-runtime").get().asFile)
+        setOutputFormat("json")
+        mustRunAfter(allJarsForBom)
+    }
+
+    tasks.named<Jar>(AddOnPlugin.JAR_ZAP_ADD_ON_TASK_NAME) {
+        from(cyclonedxRuntimeBom)
     }
 
     if (useCrowdin) {
@@ -214,10 +230,18 @@ subprojects {
             val message = versionProvider.map { "${project.zapAddOn.addOnName.get()} version $it" }
             tagMessage.set(message)
             title.set(message)
+
+            assets {
+                register("bom") {
+                    file.set(cyclonedxBom.map { project.layout.projectDirectory.file(File(it.destination.get(), "${it.outputName.get()}.json").absolutePath) })
+                    contentType.set("application/json")
+                }
+            }
         }
 
         val crowdinUploadSourceFiles = if (useCrowdin) project.tasks.named("crowdinUploadSourceFiles") else null
         releaseAddOn {
+            dependsOn(allJarsForBom)
             dependsOn(createReleaseAddOn)
 
             dependsOn(handleRelease)
@@ -356,7 +380,7 @@ subprojects {
             ignoreMissingClasses.set(true)
 
             richReport {
-                destinationDir.set(file("$buildDir/reports/japicmp/"))
+                destinationDir.set(layout.buildDirectory.dir("reports/japicmp/"))
                 reportName.set("japi.html")
                 addDefaultRules.set(true)
             }
@@ -449,7 +473,7 @@ tasks.register("deployMandatoryAddOns") {
 }
 
 tasks.register<TestReport>("testReport") {
-    destinationDirectory.set(file("$buildDir/reports/allTests"))
+    destinationDirectory.set(layout.buildDirectory.dir("reports/allTests"))
     subprojects.forEach {
         it.plugins.withType(JavaPlugin::class) {
             testResults.from(it.tasks.withType<Test>())

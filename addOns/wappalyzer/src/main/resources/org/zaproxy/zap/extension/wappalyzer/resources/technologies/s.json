@@ -795,7 +795,8 @@
     ],
     "description": "Salla is an ecommerce platform specifically tailored to serve businesses and customers in Saudi Arabia.",
     "headers": {
-      "x-powered-by": "^Salla$"
+      "x-powered-by": "^Salla$",
+      "X-Frame-Options": "\\.salla\\.sa"
     },
     "icon": "Salla.svg",
     "js": {
@@ -1962,7 +1963,7 @@
     "description": "Shaka Player is an open-source JavaScript library for adaptive media.",
     "icon": "Shaka Player.png",
     "js": {
-      "shaka.Player.version": "v([\\d\\.-\\w]+)\\;version:\\1"
+      "shaka.Player.version": "v([\\d\\.\\-\\w]+)\\;version:\\1"
     },
     "oss": true,
     "website": "https://github.com/shaka-project/shaka-player"
@@ -3074,12 +3075,12 @@
     "scriptSrc": "\\.signifyd\\.com",
     "website": "https://www.signifyd.com"
   },
-  "SilverStripe": {
+  "Silverstripe": {
     "cats": [
       1
     ],
     "description": "Silverstripe CMS is a free and open source Content Management System and Framework for creating and maintaining websites and web applications.",
-    "html": "Powered by <a href=\"[^>]+SilverStripe",
+    "html": "Powered by <a href=\"[^>]+Silverstripe",
     "icon": "SilverStripe.svg",
     "implies": "PHP",
     "meta": {
@@ -5190,6 +5191,19 @@
     "scriptSrc": "cdn\\.shopify\\.com/.+/assets/speedimize\\.js",
     "website": "https://speedimize.io"
   },
+  "Spektrix": {
+    "cats": [
+      53
+    ],
+    "description": "Spektrix is a cloud-based ticketing, marketing, and fundraising CRM system putting audience insight at your fingertips.",
+    "icon": "Spektrix.png",
+    "pricing": [
+      "poa"
+    ],
+    "saas": true,
+    "scriptSrc": "spektrix(?:\\.com)?(?:_nb)?\\/(?:stable)?(?:libraries)?\\/(?:before-after)?(?:script)?(?:spektrix)?-?(?:web)?(?:component)?s?-?(?:basket-summary)?(?:donate)?(?:gift-vouchers)?(?:loader)?(?:login-status)?(?:memberships)?(?:merchandise)?(?:-es2015)?\\.js(?:\\?ver?=((?:\\d+\\.)+\\d+))?\\;version:\\1",
+    "website": "https://www.spektrix.com"
+  },
   "Sphinx": {
     "cats": [
       4
@@ -5215,6 +5229,18 @@
     "requires": "WordPress",
     "scriptSrc": "/wp-content/themes/spicepress(?:-pro)?/",
     "website": "https://spicethemes.com/spicepress-wordpress-theme"
+  },
+  "spin.js": {
+    "cats": [
+      25
+    ],
+    "description": "Configurable JavaScript/CSS spinner that can be used as a resolution-independent loading indicator",
+    "icon": "spin.js.png",
+    "scriptSrc": [
+      "spin(?:\\.min)?\\.js(?:\\?ver=([\\d.]+))?\\;version:\\1"
+    ],
+    "oss": true,
+    "website": "https://spin.js.org/"
   },
   "Spin-a-Sale": {
     "cats": [
@@ -6205,6 +6231,15 @@
     "scriptSrc": "\\.steelhousemedia\\.com/(?:spx\\?dxver=([\\d.]+))?\\;version:\\1",
     "website": "https://steelhouse.com"
   },
+  "Stellar.js": {
+    "cats": [
+      59
+    ],
+    "description": "Stellar.js is a JavaScript library and jQuery plugin specifically designed to deliver parallax scrolling effects for web pages.",
+    "scriptSrc": "stellar(?:\\.min)?\\.js(?:\\?ver=((?:\\d+\\.)+\\d+))?\\;version:\\1",
+    "oss": true,
+    "website": "https://markdalgleish.com/projects/stellar.js/"
+  },
   "Stencil": {
     "cats": [
       18
@@ -6648,6 +6683,16 @@
     "icon": "sucuri.svg",
     "website": "https://sucuri.net/"
   },
+  "SugarJS": {
+    "cats": [
+      59
+    ],
+    "description": "SugarJS is a JavaScript library that simplifies working with native JavaScript objects, enhancing productivity and code readability.",
+    "icon": "SugarJS.svg",
+    "oss": true,
+    "scriptSrc": "sugar\\/?((?:\\d+\\.)+\\d+)?(?:\\/sugar(?:-full)?)?(?:\\.min)?\\.js\\;version:\\1",
+    "website": "https://sugarjs.com/"
+  },
   "Suiteshare": {
     "cats": [
       52
@@ -6939,7 +6984,7 @@
       "#svelte-announcer": {
         "exists": ""
       },
-      "a": {
+      "a,body": {
         "attributes": {
           "data-sveltekit-preload-data": "",
           "sveltekit:prefetch": ""
@@ -7080,13 +7125,35 @@
       59
     ],
     "description": "Swiper is a JavaScript library that creates modern touch sliders with hardware-accelerated transitions.",
-    "dom": "div[data-swiper-slide-index], [swiper-container]",
+    "dom": [
+      "div[data-swiper-slide-index]", 
+      "swiper-container",
+      "swiper-slide",
+      "div.swiper-wrapper",
+      "div.swiper-initialized",
+      "div.swiper-vertical"
+    ],
     "icon": "Swiper.svg",
     "js": {
       "Swiper": ""
     },
+    "oss": true,
     "scriptSrc": "swiper(?:\\.min)?\\.js",
     "website": "https://swiperjs.com"
+  },
+  "Swup": {
+    "cats": [
+      59
+    ],
+    "description": "Swup is a versatile and expandable library for implementing page transitions on websites that use server-side rendering.",
+    "dom": "html[class*='swup-enabled']",
+    "icon": "Swup.svg",
+    "js": {
+      "Swup": ""
+    },
+    "oss": true,
+    "scriptSrc": "(?:((?:\\d+\\.)+\\d+)\\/(?:dist\\/)?)?swup(?:-preload)?(?:-plugin)?(?:\\.min)?\\.js\\;version:\\1",
+    "website": "https://swup.js.org"
   },
   "Swym Wishlist Plus": {
     "cats": [
@@ -7126,6 +7193,11 @@
       "img[src*='sylius_shop_product_tiny_thumbnail']": {
         "attributes": {
           "src": "/sylius_shop_product_tiny_thumbnail/"
+        }
+      },
+      "input#sylius_add_to_cart_cartItem_variant": {
+        "attributes": {
+          "id": ""
         }
       }
     },
@@ -7168,6 +7240,20 @@
       "generator": "^Sympa$"
     },
     "website": "https://www.sympa.org/"
+  },
+  "Syncfusion": {
+    "cats": [
+      59
+    ],
+    "description": "Syncfusion is a suite of JavaScript libraries crafted for modern web development. It's modular design enables developers to create interactive, and responsive applications, enhancing user experience across various devices and platforms.",
+    "icon": "syncfusion.svg",
+    "pricing": [
+      "mid",
+      "recurring",
+      "poa"
+    ],
+    "scriptSrc": "syncfusion(?:\\.com)?(?:\\/ej\\d)?(?:-[base|input|buttons|lists|calendars]+)?(?:\\/dist)?(?:\\/global)?(?:\\/ej\\d)?(?:-[base|input|buttons|lists|calendars]+)?(?:\\.min)?\\.js(?:\\?ver=((?:\\d+\\.)+\\d+))?\\;version:\\1",
+    "website": "https://www.syncfusion.com/"
   },
   "Syndeca": {
     "cats": [

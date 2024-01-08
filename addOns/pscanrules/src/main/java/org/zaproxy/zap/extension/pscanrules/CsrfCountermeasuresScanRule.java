@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.BiPredicate;
 import net.htmlparser.jericho.Attribute;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
@@ -40,6 +41,7 @@ import org.parosproxy.paros.network.HttpMessage;
 import org.zaproxy.addon.commonlib.CommonAlertTag;
 import org.zaproxy.addon.commonlib.vulnerabilities.Vulnerabilities;
 import org.zaproxy.addon.commonlib.vulnerabilities.Vulnerability;
+import org.zaproxy.zap.extension.anticsrf.AntiCsrfParam;
 import org.zaproxy.zap.extension.anticsrf.ExtensionAntiCSRF;
 import org.zaproxy.zap.extension.pscan.PluginPassiveScanner;
 import org.zaproxy.zap.extension.ruleconfig.RuleConfigParam;
@@ -104,8 +106,10 @@ public class CsrfCountermeasuresScanRule extends PluginPassiveScanner {
 
         List<Element> formElements = source.getAllElements(HTMLElementName.FORM);
         List<String> tokenNames = extAntiCSRF.getAntiCsrfTokenNames();
+        // TODO: Update to use extensionAntiCSRF.isAntiCsrfToken(String) after 2.15
+        BiPredicate<String, String> matcher = getMatcher();
 
-        if (formElements != null && formElements.size() > 0) {
+        if (formElements != null && !formElements.isEmpty()) {
             boolean hasSecurityAnnotation = false;
 
             // Loop through all of the FORM tags
@@ -115,11 +119,11 @@ public class CsrfCountermeasuresScanRule extends PluginPassiveScanner {
 
             List<String> ignoreList = new ArrayList<>();
             String ignoreConf = getCSRFIgnoreList();
-            if (ignoreConf != null && ignoreConf.length() > 0) {
+            if (ignoreConf != null && !ignoreConf.isEmpty()) {
                 LOGGER.debug("Using ignore list: {}", ignoreConf);
                 for (String str : ignoreConf.split(",")) {
                     String strTrim = str.trim();
-                    if (strTrim.length() > 0) {
+                    if (!strTrim.isEmpty()) {
                         ignoreList.add(strTrim);
                     }
                 }
@@ -159,7 +163,7 @@ public class CsrfCountermeasuresScanRule extends PluginPassiveScanner {
                 sbForm.append("[Form " + numberOfFormsPassed + ": \"");
                 boolean foundCsrfToken = false;
 
-                if (inputElements != null && inputElements.size() > 0) {
+                if (inputElements != null && !inputElements.isEmpty()) {
                     // Loop through all of the INPUT elements
                     LOGGER.debug("Found {} inputs", inputElements.size());
                     for (Element inputElement : inputElements) {
@@ -167,7 +171,7 @@ public class CsrfCountermeasuresScanRule extends PluginPassiveScanner {
                         if (attId != null) {
                             elementNames.add(attId);
                             for (String tokenName : tokenNames) {
-                                if (tokenName.equalsIgnoreCase(attId)) {
+                                if (matcher.test(attId, tokenName)) {
                                     foundCsrfToken = true;
                                     break;
                                 }
@@ -180,7 +184,7 @@ public class CsrfCountermeasuresScanRule extends PluginPassiveScanner {
                                 elementNames.add(name);
                             }
                             for (String tokenName : tokenNames) {
-                                if (tokenName.equalsIgnoreCase(name)) {
+                                if (matcher.test(name, tokenName)) {
                                     foundCsrfToken = true;
                                     break;
                                 }
@@ -245,6 +249,16 @@ public class CsrfCountermeasuresScanRule extends PluginPassiveScanner {
             }
         }
         return false;
+    }
+
+    private static BiPredicate<String, String> getMatcher() {
+        if (Model.getSingleton()
+                .getOptionsParam()
+                .getParamSet(AntiCsrfParam.class)
+                .isPartialMatchingEnabled()) {
+            return StringUtils::containsIgnoreCase;
+        }
+        return String::equalsIgnoreCase;
     }
 
     @Override

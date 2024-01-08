@@ -28,7 +28,9 @@ zapAddOn {
                 register("network") {
                     version.set(">=0.2.0")
                 }
-                register("scripts")
+                register("scripts") {
+                    version.set(">=45.0.0")
+                }
                 register("selenium") {
                     version.set(">= 15.13.0")
                 }
@@ -40,9 +42,10 @@ zapAddOn {
 dependencies {
     zapAddOn("commonlib")
     zapAddOn("network")
+    zapAddOn("scripts")
     zapAddOn("selenium")
 
-    implementation("org.zaproxy:zest:0.19.0") {
+    implementation("org.zaproxy:zest:0.20.0") {
         // Provided by commonlib add-on.
         exclude(group = "com.fasterxml.jackson")
         // Provided by Selenium add-on.

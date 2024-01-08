@@ -181,6 +181,39 @@
     "scriptSrc": "/assets/components/templates/\\;confidence:50",
     "website": "https://modx.com/content-management-framework"
   },
+  "Morphext": {
+    "cats": [
+      25,
+      59
+    ],
+    "description": "A simple, high-performance and cross-browser jQuery rotating / carousel plugin for text phrases powered by Animate.css.",
+    "icon": "Morphext.svg",
+    "oss": true,
+    "scriptSrc": "morphext(?:\\.min)?\\.js(?:\\?ver=((?:\\d+\\.)+\\d+))?\\;version:\\1",
+    "website": "https://morphext.fyianlai.com/"
+  },
+    "Morris.js": {
+    "cats": [
+      59
+    ],
+    "description": "A JavaScript library that simplifies the process of creating interactive and responsive data visualizations on the web.",
+    "oss": true,
+    "requires": [
+      "jQuery",
+      "Raphael"
+    ],
+    "scriptSrc": "morris(?:\\/(?:area|bar|donut|grid|hover|line))?(?:\\.min)?\\.js(?:\\?ver=((?:\\d+\\.)+\\d+))?\\;version:\\1",
+    "website": "https://morrisjs.github.io/morris.js/"
+  },
+  "Moxie": {
+    "cats": [5, 68],
+    "description": "Pollyfills for XHR2 and File API",
+    "website": "https://github.com/moxiecode/moxie",
+    "oss": true,
+    "scriptSrc": [
+      "moxie(?:\\.min)?\\.js(?:\\?ver=([\\d.]+))?\\;version:\\1"
+    ]
+  },
   "MRW": {
     "cats": [
       99
@@ -360,7 +393,7 @@
     "scriptSrc": [
       "js/mage",
       "skin/frontend/(?:default|(enterprise))\\;version:\\1?1 (Enterprise):1 (Community)",
-      "skin/frontend/\\;confidence:50\\;version:\\1",
+      "skin/frontend/\\;confidence:50",
       "static/_requirejs\\;confidence:50\\;version:2"
     ],
     "website": "https://magento.com"
@@ -412,6 +445,16 @@
     "saas": true,
     "scriptSrc": "acc\\.magixite\\.com/",
     "website": "https://acc.magixite.com"
+  },
+  "Magnific Popup": {
+    "cats": [
+      59
+    ],
+    "description": "Magnific Popup is a responsive lightbox & dialog script with focus on performance and providing best experience for user with any device.",
+    "icon": "Magnific Popup.png",
+    "oss": true,
+    "scriptSrc": "magnific-popup(?:\\.min)?\\.js(?:\\?v(?:er)?=((?:\\d+\\.)+\\d+))?\\;version:\\1",
+    "website": "https://dimsemenov.com/plugins/magnific-popup/"
   },
   "MailChimp": {
     "cats": [
@@ -479,6 +522,16 @@
     "requires": "WordPress",
     "scriptSrc": "/wp-content/plugins/mailchimp-for-wp/.+\\.js(?:\\?ver=(\\d+(?:\\.\\d+)+))?\\;version:\\1",
     "website": "https://www.mc4wp.com"
+  },
+  "Mailcheck": {
+    "cats": [
+      59
+    ],
+    "description": "Mailcheck is a JavaScript library designed to address the issue of misspelled email addresses during user input.",
+    "icon": "Mailcheck.png",
+    "oss": true,
+    "scriptSrc": "mailcheck(?:\\.min)?\\.js(?:\\?v(?:er)?=(\\d+\\.\\d+\\.\\d+))?\\;version:\\1",
+    "website": "https://github.com/mailcheck/mailcheck"
   },
   "MailerLite": {
     "cats": [
@@ -1463,6 +1516,25 @@
       "powered-by": "^Melis CMS\\."
     },
     "website": "https://www.melistechnology.com/"
+  },
+  "MemberSpace": {
+    "cats": [
+      19,
+      41
+    ],
+    "description": "MemberSpace is a cloud-based membership solution, which allows users to provide role-based access to content.",
+    "icon": "MemberSpace.png",
+    "js": {
+      "MemberSpace": "",
+      "MemberSpaceParams": ""
+    },
+    "pricing": [
+      "payg",
+      "recurring"
+    ],
+    "saas": true,
+    "scriptSrc": "memberspace\\.com(?:\\/widget)?(?:\\/\\w{0,25})?(?:\\/scripts)?(?:\\/widgets)?(?:\\/main)?\\.js",
+    "website": "https://www.memberspace.com"
   },
   "MemberStack": {
     "cats": [
@@ -3263,6 +3335,15 @@
     "icon": "Mobicred.png",
     "scriptSrc": "app\\.mobicredwidget\\.co\\.za",
     "website": "https://mobicred.co.za/"
+  },
+  "mobile-detect.js": {
+    "cats": [
+      59
+    ],
+    "description": "Mobile-detect.js is a compact JavaScript library designed to detect devices by comparing patterns against a given User-Agent string.",
+    "oss": true,
+    "scriptSrc": "mobile-detect(?:\\.min)?\\.js(?:\\?ver=((?:\\d+\\.)+\\d+))?\\;version:\\1",
+    "website": "https://hgoebl.github.io/mobile-detect.js/doc/MobileDetect.html"
   },
   "mod_auth_pam": {
     "cats": [

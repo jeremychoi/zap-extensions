@@ -5,7 +5,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Added
+- Add solution to 'Server Misconfiguration' and 'Application Misconfiguration' vulnerabilities (Issue 8056).
+
 ### Changed
+- Update Vulnerabilities' references to use https links and retire some which were out-dated (Issue 8262).
+- Maintenance changes.
+
+## [1.20.0] - 2023-12-07
+
+### Changed
+- Dependency updates.
+
+### Added
+- Add utilities for time-based checks, migrated from Active scanner rules add-on.
+
+### Changed
+- Added solution to 'Insecure Indexing', 'Insufficient Anti automation', 'Fingerprinting' (Issue 8056).
+
+## [1.19.0] - 2023-11-10
+### Added
+- A generic UI component for keeping menu items sorted.
+
+### Changed
+- Add solution to 'Brute Forcing Credit Card Information', 'Content Spoofing', 'Credential and Session Prediction', 'XML Injection' and 'XML External Entities' vulnerabilities (Issue 8056).
+
+## [1.18.0] - 2023-10-12
+### Changed
+- Update minimum ZAP version to 2.14.0.
+- Add solution to 'Brute Forcing Log-in Credentials', 'Brute Forcing Session Identifiers' and 'Brute Forcing Directories and Files' vulnerabilities (Issue 8056).
 - Update vulnerabilities' CWE references to use HTTPS scheme.
 
 ## [1.17.0] - 2023-09-07
@@ -117,6 +145,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 First version.
 
+[1.20.0]: https://github.com/zaproxy/zap-extensions/releases/commonlib-v1.20.0
+[1.19.0]: https://github.com/zaproxy/zap-extensions/releases/commonlib-v1.19.0
+[1.18.0]: https://github.com/zaproxy/zap-extensions/releases/commonlib-v1.18.0
 [1.17.0]: https://github.com/zaproxy/zap-extensions/releases/commonlib-v1.17.0
 [1.16.0]: https://github.com/zaproxy/zap-extensions/releases/commonlib-v1.16.0
 [1.15.0]: https://github.com/zaproxy/zap-extensions/releases/commonlib-v1.15.0

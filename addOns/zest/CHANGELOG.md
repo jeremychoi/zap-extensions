@@ -4,7 +4,18 @@ All notable changes to this add-on will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
+### Changed
+- Update minimum Scripts add-on version to 45.
 
+## [43] - 2023-12-19
+### Changed
+- Move "Zest" under "Scripts > Engine" in the Options panel list.
+
+## [42] - 2023-10-12
+### Changed
+- Update minimum ZAP version to 2.14.0.
+- Update Zest library to 0.20.0:
+  - Update Selenium to version 4.14.0.
 
 ## [41] - 2023-09-26
 ### Added
@@ -304,6 +315,8 @@ Sender scripts. (Issue 5590)
 
 - Updated for 2.1.0
 
+[43]: https://github.com/zaproxy/zap-extensions/releases/zest-v43
+[42]: https://github.com/zaproxy/zap-extensions/releases/zest-v42
 [41]: https://github.com/zaproxy/zap-extensions/releases/zest-v41
 [40]: https://github.com/zaproxy/zap-extensions/releases/zest-v40
 [39]: https://github.com/zaproxy/zap-extensions/releases/zest-v39
