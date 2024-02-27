@@ -31,6 +31,7 @@ import net.htmlparser.jericho.StartTagType;
 import org.parosproxy.paros.Constant;
 import org.parosproxy.paros.core.scanner.Alert;
 import org.parosproxy.paros.network.HtmlParameter;
+import org.parosproxy.paros.network.HtmlParameter.Type;
 import org.parosproxy.paros.network.HttpHeader;
 import org.parosproxy.paros.network.HttpMessage;
 import org.zaproxy.addon.commonlib.CommonAlertTag;
@@ -40,7 +41,8 @@ import org.zaproxy.zap.extension.pscan.PluginPassiveScanner;
  * Port for the Watcher passive scanner (http://websecuritytool.codeplex.com/) rule {@code
  * CasabaSecurity.Web.Watcher.Checks.CheckPasvUserControlledCharset}
  */
-public class UserControlledCharsetScanRule extends PluginPassiveScanner {
+public class UserControlledCharsetScanRule extends PluginPassiveScanner
+        implements CommonPassiveScanRuleInfo {
 
     /** Prefix for internationalized messages used by this rule */
     private static final String MESSAGE_PREFIX = "pscanrules.usercontrolledcharset.";
@@ -110,7 +112,7 @@ public class UserControlledCharsetScanRule extends PluginPassiveScanner {
             }
             for (HtmlParameter param : params) {
                 if (bodyContentCharset.equalsIgnoreCase(param.getValue())) {
-                    raiseAlert(msg, id, "META", "Content-Type", param, bodyContentCharset);
+                    buildAlert("META", "Content-Type", param, bodyContentCharset).raise();
                 }
             }
         }
@@ -150,7 +152,7 @@ public class UserControlledCharsetScanRule extends PluginPassiveScanner {
 
         for (HtmlParameter param : params) {
             if (encoding.equalsIgnoreCase(param.getValue())) {
-                raiseAlert(msg, id, "\\?xml", "encoding", param, encoding);
+                buildAlert("\\?xml", "encoding", param, encoding).raise();
             }
         }
     }
@@ -163,7 +165,7 @@ public class UserControlledCharsetScanRule extends PluginPassiveScanner {
 
         for (HtmlParameter param : params) {
             if (charset.equalsIgnoreCase(param.getValue())) {
-                raiseAlert(msg, id, "Content-Type HTTP header", "charset", param, charset);
+                buildAlert("Content-Type HTTP header", "charset", param, charset).raise();
             }
         }
     }
@@ -189,9 +191,8 @@ public class UserControlledCharsetScanRule extends PluginPassiveScanner {
         return source.isXML();
     }
 
-    private void raiseAlert(
-            HttpMessage msg, int id, String tag, String attr, HtmlParameter param, String charset) {
-        newAlert()
+    private AlertBuilder buildAlert(String tag, String attr, HtmlParameter param, String charset) {
+        return newAlert()
                 .setRisk(Alert.RISK_INFO)
                 .setConfidence(Alert.CONFIDENCE_LOW)
                 .setDescription(getDescriptionMessage())
@@ -200,8 +201,7 @@ public class UserControlledCharsetScanRule extends PluginPassiveScanner {
                 .setSolution(getSolutionMessage())
                 .setReference(getReferenceMessage())
                 .setCweId(20) // CWE-20: Improper Input Validation
-                .setWascId(20) // WASC-20: Improper Input Handling
-                .raise();
+                .setWascId(20); // WASC-20: Improper Input Handling
     }
 
     @Override
@@ -239,5 +239,16 @@ public class UserControlledCharsetScanRule extends PluginPassiveScanner {
                 param.getName(),
                 param.getValue(),
                 charset);
+    }
+
+    @Override
+    public List<Alert> getExampleAlerts() {
+        return List.of(
+                buildAlert(
+                                "Content-Type HTTP header",
+                                "charset",
+                                new HtmlParameter(Type.url, "cs", "utf-8"),
+                                "utf-8")
+                        .build());
     }
 }

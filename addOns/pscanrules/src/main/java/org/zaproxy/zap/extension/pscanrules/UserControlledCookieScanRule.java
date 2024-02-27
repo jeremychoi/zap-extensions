@@ -28,11 +28,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import net.htmlparser.jericho.Source;
+import org.apache.commons.httpclient.URI;
+import org.apache.commons.httpclient.URIException;
 import org.parosproxy.paros.Constant;
 import org.parosproxy.paros.core.scanner.Alert;
 import org.parosproxy.paros.network.HtmlParameter;
+import org.parosproxy.paros.network.HtmlParameter.Type;
 import org.parosproxy.paros.network.HttpHeader;
 import org.parosproxy.paros.network.HttpMessage;
+import org.parosproxy.paros.network.HttpRequestHeader;
 import org.zaproxy.addon.commonlib.CommonAlertTag;
 import org.zaproxy.zap.extension.pscan.PluginPassiveScanner;
 
@@ -40,7 +44,8 @@ import org.zaproxy.zap.extension.pscan.PluginPassiveScanner;
  * Port for the Watcher passive scanner (http://websecuritytool.codeplex.com/) rule {@code
  * CasabaSecurity.Web.Watcher.Checks.CheckPasvUserControlledCookie}
  */
-public class UserControlledCookieScanRule extends PluginPassiveScanner {
+public class UserControlledCookieScanRule extends PluginPassiveScanner
+        implements CommonPassiveScanRuleInfo {
 
     /** Prefix for internationalized messages used by this rule */
     private static final String MESSAGE_PREFIX = "pscanrules.usercontrolledcookie.";
@@ -144,13 +149,13 @@ public class UserControlledCookieScanRule extends PluginPassiveScanner {
             if (param.getValue() != null
                     && param.getValue().length() > 1
                     && param.getValue().equals(cookiePart)) {
-                raiseAlert(msg, id, param, cookie);
+                buildAlert(msg, param, cookie).raise();
             }
         }
     }
 
-    private void raiseAlert(HttpMessage msg, int id, HtmlParameter param, String cookie) {
-        newAlert()
+    private AlertBuilder buildAlert(HttpMessage msg, HtmlParameter param, String cookie) {
+        return newAlert()
                 .setRisk(Alert.RISK_INFO)
                 .setConfidence(Alert.CONFIDENCE_LOW)
                 .setDescription(getDescriptionMessage())
@@ -158,9 +163,9 @@ public class UserControlledCookieScanRule extends PluginPassiveScanner {
                 .setOtherInfo(getExtraInfoMessage(msg, param, cookie))
                 .setSolution(getSolutionMessage())
                 .setReference(getReferenceMessage())
-                .setCweId(20) // CWE-20: Improper Input Validation
-                .setWascId(20) // WASC-20: Improper Input Handling
-                .raise();
+                .setCweId(565) // CWE-565: Reliance on Cookies without Validation and Integrity
+                // Checking
+                .setWascId(20); // WASC-20: Improper Input Handling
     }
 
     @Override
@@ -203,5 +208,22 @@ public class UserControlledCookieScanRule extends PluginPassiveScanner {
                 cookie,
                 param.getName(),
                 param.getValue());
+    }
+
+    @Override
+    public List<Alert> getExampleAlerts() {
+        HttpMessage msg = new HttpMessage();
+        msg.getRequestHeader().setMethod(HttpRequestHeader.GET);
+        try {
+            msg.getRequestHeader().setURI(new URI("https://example.com/transact", false));
+        } catch (URIException | NullPointerException e) {
+            // ignore
+        }
+        return List.of(
+                buildAlert(
+                                msg,
+                                new HtmlParameter(Type.url, "place", "poison"),
+                                "value=poison; SameSite=Strict")
+                        .build());
     }
 }

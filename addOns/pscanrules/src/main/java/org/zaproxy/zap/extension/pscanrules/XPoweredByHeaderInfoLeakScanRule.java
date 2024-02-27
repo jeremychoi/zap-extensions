@@ -36,7 +36,8 @@ import org.zaproxy.zap.extension.pscan.PluginPassiveScanner;
 /**
  * X-Powered-By Information Leak passive scan rule https://github.com/zaproxy/zaproxy/issues/1169
  */
-public class XPoweredByHeaderInfoLeakScanRule extends PluginPassiveScanner {
+public class XPoweredByHeaderInfoLeakScanRule extends PluginPassiveScanner
+        implements CommonPassiveScanRuleInfo {
 
     private static final String MESSAGE_PREFIX = "pscanrules.xpoweredbyheaderinfoleak.";
     private static final String HEADER_NAME = "X-Powered-By";
@@ -57,7 +58,7 @@ public class XPoweredByHeaderInfoLeakScanRule extends PluginPassiveScanner {
 
         if (isXPoweredByHeaderExist(msg)) {
             List<String> xpbHeaders = getXPoweredByHeaders(msg);
-            raiseAlert(msg, id, xpbHeaders);
+            buildAlert(xpbHeaders).raise();
             LOGGER.debug("\tScan of record {} took {} ms", id, System.currentTimeMillis() - start);
         }
     }
@@ -93,14 +94,7 @@ public class XPoweredByHeaderInfoLeakScanRule extends PluginPassiveScanner {
         return matchedHeaders;
     }
 
-    /**
-     * Raises an alert with the "Evidence" or "Other" field filled-in depending on the header
-     * repetition.
-     *
-     * @param msg The Http message containing the response headers
-     * @param id The ID of the message being scanned.
-     */
-    private void raiseAlert(HttpMessage msg, int id, List<String> xpbHeaders) {
+    private AlertBuilder buildAlert(List<String> xpbHeaders) {
         String alertEvidence = xpbHeaders.get(0);
         String alertOtherInfo = "";
         if (xpbHeaders.size() > 1) { // we have multiple X-Powered-By headers
@@ -112,7 +106,7 @@ public class XPoweredByHeaderInfoLeakScanRule extends PluginPassiveScanner {
             }
             alertOtherInfo = sb.toString();
         }
-        newAlert()
+        return newAlert()
                 .setRisk(getRisk())
                 .setConfidence(Alert.CONFIDENCE_MEDIUM)
                 .setDescription(getDescription())
@@ -121,8 +115,7 @@ public class XPoweredByHeaderInfoLeakScanRule extends PluginPassiveScanner {
                 .setReference(getReference())
                 .setEvidence(alertEvidence)
                 .setCweId(getCweId())
-                .setWascId(getWascId())
-                .raise();
+                .setWascId(getWascId());
     }
 
     @Override
@@ -162,5 +155,10 @@ public class XPoweredByHeaderInfoLeakScanRule extends PluginPassiveScanner {
 
     public int getWascId() {
         return 13; // WASC Id - Info leakage
+    }
+
+    @Override
+    public List<Alert> getExampleAlerts() {
+        return List.of(buildAlert(List.of("X-Powered-By: PHP/5.4")).build());
     }
 }

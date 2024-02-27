@@ -43,7 +43,7 @@ public class SimpleJsonCookieVerificationPage extends TestPage {
         String cookie = null;
         List<HttpCookie> cookieList = msg.getRequestHeader().getHttpCookies();
         for (HttpCookie hc : cookieList) {
-            if (hc.getName().equals("sid")) {
+            if ("sid".equals(hc.getName())) {
                 cookie = hc.getValue();
             }
         }

@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - Video link in help for Automation Framework job.
 
+### Changed
+- Maintenance changes.
+- Link website alert pages and help (Issue 8189).
+- Updated Alerts' reference links (Issue 8262).
+
 ## [21] - 2023-12-19
 ### Fixed
 - Use empty values as defined by the Value Generator configuration (Issue 8202).

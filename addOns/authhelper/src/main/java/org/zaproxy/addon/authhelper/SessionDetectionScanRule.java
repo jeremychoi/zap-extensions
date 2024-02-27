@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import net.htmlparser.jericho.Source;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.parosproxy.paros.Constant;
@@ -32,7 +31,6 @@ import org.parosproxy.paros.core.scanner.Alert;
 import org.parosproxy.paros.network.HttpHeader;
 import org.parosproxy.paros.network.HttpMessage;
 import org.zaproxy.addon.authhelper.HeaderBasedSessionManagementMethodType.HeaderBasedSessionManagementMethod;
-import org.zaproxy.zap.authentication.AuthenticationMethod;
 import org.zaproxy.zap.authentication.AuthenticationMethod.AuthCheckingStrategy;
 import org.zaproxy.zap.extension.pscan.PluginPassiveScanner;
 import org.zaproxy.zap.model.Context;
@@ -85,7 +83,7 @@ public class SessionDetectionScanRule extends PluginPassiveScanner {
             // The request is using at least one session token, do we know where they come from?
             List<SessionToken> foundTokens = new ArrayList<>();
             for (SessionToken st : requestTokens) {
-                SessionToken sourceToken = AuthUtils.containsSessionToken(st.getToken());
+                SessionToken sourceToken = AuthUtils.containsSessionToken(st.getValue());
                 if (sourceToken != null) {
                     foundTokens.add(sourceToken);
                     LOGGER.debug("Found source of {}", st.getKey());
@@ -135,12 +133,13 @@ public class SessionDetectionScanRule extends PluginPassiveScanner {
                                 new HeaderBasedSessionManagementMethodType();
                         HeaderBasedSessionManagementMethod method =
                                 type.createSessionManagementMethod(context.getId());
-                        method.setHeaderConfigs(AuthUtils.getHeaderTokens(msg, foundTokens, false));
+                        method.setHeaderConfigs(AuthUtils.getHeaderTokens(msg, foundTokens, true));
 
                         context.setSessionManagementMethod(method);
                         Stats.incCounter("stats.auth.configure.session.header");
 
-                        if (isAutoDetectCheckingStrategy(context.getAuthenticationMethod())) {
+                        if (context.getAuthenticationMethod().getAuthCheckingStrategy()
+                                == AuthCheckingStrategy.AUTO_DETECT) {
                             AuthUtils.setVerificationDetailsForContext(
                                     context.getId(), new VerificationRequestDetails());
                         }
@@ -169,18 +168,6 @@ public class SessionDetectionScanRule extends PluginPassiveScanner {
         SessionManagementRequestDetails currentReq =
                 AuthUtils.getSessionManagementDetailsForContext(context.getId());
         return currentReq != null && smDetails.getTokens().size() > currentReq.getTokens().size();
-    }
-
-    /**
-     * Returns true if the authentication strategy is set to "auto detect". Prior to ZAP 2.13 this
-     * was indicated by setting the strategy to "POLL" but with no pollUrl. From 2.13 a new
-     * AUTO_DETECT enum will be available.
-     */
-    protected boolean isAutoDetectCheckingStrategy(AuthenticationMethod authMethod) {
-        String authStrategyName = authMethod.getAuthCheckingStrategy().name();
-        return "AUTO_DETECT".equals(authStrategyName)
-                || (AuthCheckingStrategy.POLL_URL.name().equals(authStrategyName)
-                        && StringUtils.isEmpty(authMethod.getPollUrl()));
     }
 
     protected AlertBuilder getAlert(SessionManagementRequestDetails smDetails) {

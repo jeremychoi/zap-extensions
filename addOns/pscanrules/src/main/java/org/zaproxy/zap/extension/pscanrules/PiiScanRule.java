@@ -33,6 +33,7 @@ import org.parosproxy.paros.Constant;
 import org.parosproxy.paros.core.scanner.Alert;
 import org.parosproxy.paros.core.scanner.Plugin.AlertThreshold;
 import org.parosproxy.paros.network.HttpMessage;
+import org.parosproxy.paros.network.HttpResponseHeader;
 import org.zaproxy.addon.commonlib.CommonAlertTag;
 import org.zaproxy.addon.commonlib.PiiUtils;
 import org.zaproxy.addon.commonlib.ResourceIdentificationUtils;
@@ -46,7 +47,7 @@ import org.zaproxy.zap.extension.pscan.PluginPassiveScanner;
  *
  * @author Michael Kruglos (@michaelkruglos)
  */
-public class PiiScanRule extends PluginPassiveScanner {
+public class PiiScanRule extends PluginPassiveScanner implements CommonPassiveScanRuleInfo {
 
     /** Prefix for internationalised messages used by this rule */
     private static final String MESSAGE_PREFIX = "pscanrules.pii.";
@@ -93,7 +94,8 @@ public class PiiScanRule extends PluginPassiveScanner {
         if (ResourceIdentificationUtils.isCss(msg) || ResourceIdentificationUtils.isImage(msg)) {
             return;
         }
-        if (!getAlertThreshold().equals(AlertThreshold.LOW) && isPdfMessage(msg)) {
+        if (!getAlertThreshold().equals(AlertThreshold.LOW)
+                && !isMessageSuitableForNonLowThreshold(msg)) {
             return;
         }
 
@@ -267,6 +269,12 @@ public class PiiScanRule extends PluginPassiveScanner {
             return PATH_PATTERN.matcher(path).find();
         }
         return false;
+    }
+
+    private static boolean isMessageSuitableForNonLowThreshold(HttpMessage msg) {
+        HttpResponseHeader responseHeader = msg.getResponseHeader();
+        return (responseHeader.isHtml() || responseHeader.isJson() || responseHeader.isXml())
+                && !isPdfMessage(msg);
     }
 
     private static class Candidate {
