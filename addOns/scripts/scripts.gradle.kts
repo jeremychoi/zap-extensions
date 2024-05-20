@@ -9,7 +9,11 @@ zapAddOn {
     manifest {
         author.set("ZAP Dev Team")
         url.set("https://www.zaproxy.org/docs/desktop/addons/script-console/")
+        // Don't search the add-on classes to prevent the inclusion
+        // of some scan rules which are loaded at runtime.
+        classpath.setFrom(files())
         extensions {
+            register("org.zaproxy.zap.extension.scripts.ExtensionScriptsUI")
             register("org.zaproxy.zap.extension.scripts.automation.ExtensionScriptAutomation") {
                 classnames {
                     allowed.set(listOf("org.zaproxy.zap.extension.scripts.automation"))
@@ -19,10 +23,22 @@ zapAddOn {
                         register("automation") {
                             version.set(">=0.31.0")
                         }
-                        register("commonlib")
                     }
                 }
             }
+        }
+        dependencies {
+            addOns {
+                register("commonlib") {
+                    version.set(">=1.25.0")
+                }
+            }
+        }
+        ascanrules {
+            register("org.zaproxy.zap.extension.scripts.scanrules.ScriptsActiveScanner")
+        }
+        pscanrules {
+            register("org.zaproxy.zap.extension.scripts.scanrules.ScriptsPassiveScanner")
         }
     }
 }
@@ -42,6 +58,8 @@ spotless {
 dependencies {
     zapAddOn("automation")
     zapAddOn("commonlib")
+
+    implementation("net.bytebuddy:byte-buddy:1.14.13")
 
     testImplementation(project(":testutils"))
 }

@@ -232,7 +232,7 @@ public class Spider {
         }
         // Add the seed to the list -- it will be added to the task list only when the spider is
         // started
-        this.seedList.add(new Seed(uri, httpVersion, false));
+        this.seedList.add(new Seed(uri, httpVersion));
         // Add the appropriate 'robots.txt' as a seed
         if (getSpiderParam().isParseRobotsTxt()) {
             addRootFileSeed(uri, "robots.txt", httpVersion);
@@ -528,11 +528,13 @@ public class Spider {
         // Add the seeds
         for (Seed seed : seedList) {
             LOGGER.debug("Adding seed for spider: {}", seed);
-            controller.addSeed(
-                    seed.getUri(),
-                    HttpRequestHeader.GET,
-                    seed.getHttpVersion(),
-                    seed.getFromFileSeed());
+
+            if (seed.getFromFileSeed()) {
+                controller.addSeedFromFileSeed(
+                        seed.getUri(), HttpRequestHeader.GET, seed.getHttpVersion());
+            } else {
+                controller.addSeed(seed.getUri(), HttpRequestHeader.GET, seed.getHttpVersion());
+            }
         }
         // Mark the process as completely initialized
         initialized = true;
@@ -866,6 +868,12 @@ public class Spider {
 
         public Boolean getFromFileSeed() {
             return fromFileSeed;
+        }
+
+        Seed(URI uri, String httpVersion) {
+            this.uri = uri;
+            this.httpVersion = httpVersion;
+            this.fromFileSeed = false;
         }
 
         Seed(URI uri, String httpVersion, Boolean fromFileSeed) {

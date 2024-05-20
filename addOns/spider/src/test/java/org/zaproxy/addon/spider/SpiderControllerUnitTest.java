@@ -100,7 +100,7 @@ class SpiderControllerUnitTest extends TestUtils {
         // Given
         URI uri = new URI("http://127.0.0.1", true);
         // When
-        spiderController.addSeed(uri, HttpRequestHeader.GET, httpVersion, false);
+        spiderController.addSeed(uri, HttpRequestHeader.GET, httpVersion);
         // Then
         HttpMessage msg = messageWrittenToSession();
         assertThat(msg.getRequestHeader().getVersion(), is(equalTo(httpVersion)));
@@ -116,7 +116,7 @@ class SpiderControllerUnitTest extends TestUtils {
         // Given
         URI seed = new URI(testURI, true);
         // When
-        spiderController.addSeed(seed, HttpRequestHeader.GET, "HTTP/2", true);
+        spiderController.addSeedFromFileSeed(seed, HttpRequestHeader.GET, "HTTP/2");
         // Then
         verify(spider, times(0))
                 .notifyListenersFoundURI(testURI, HttpRequestHeader.GET, FetchStatus.SEED);

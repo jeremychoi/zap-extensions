@@ -352,6 +352,52 @@ class ScriptJobUnitTest extends TestUtils {
     }
 
     @Test
+    void shouldLoadAllParameters() {
+        // Given
+        ScriptJob job = new ScriptJob();
+        String yamlStr =
+                String.join(
+                        "\n",
+                        "parameters:",
+                        "  action: test-action",
+                        "  type: test-type",
+                        "  engine: test-engine",
+                        "  name: test-name",
+                        "  source: test-source",
+                        "  inline: test-inline",
+                        "  target: test-target");
+        setJobData(job, yamlStr);
+
+        // When
+        job.verifyParameters(progress);
+
+        // Then
+        assertThat(job.getParameters().getAction(), is(equalTo("test-action")));
+        assertThat(job.getParameters().getType(), is(equalTo("test-type")));
+        assertThat(job.getParameters().getEngine(), is(equalTo("test-engine")));
+        assertThat(job.getParameters().getName(), is(equalTo("test-name")));
+        assertThat(job.getParameters().getSource(), is(equalTo("test-source")));
+        assertThat(job.getParameters().getInline(), is(equalTo("test-inline")));
+        assertThat(job.getParameters().getTarget(), is(equalTo("test-target")));
+    }
+
+    @Test
+    void shouldLoadFileParameter() {
+        // Given
+        ScriptJob job = new ScriptJob();
+        String yamlStr =
+                String.join("\n", "parameters:", "  action: test-action", "  file: test-file");
+        setJobData(job, yamlStr);
+
+        // When
+        job.verifyParameters(progress);
+
+        // Then
+        assertThat(job.getParameters().getAction(), is(equalTo("test-action")));
+        assertThat(job.getParameters().getSource(), is(equalTo("test-file")));
+    }
+
+    @Test
     void shouldSucceedIfRunScriptFound() {
         // Given
         ScriptJob job = new ScriptJob();
@@ -383,7 +429,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  action: run",
                         "  type: \"standalone\"",
                         "  name: myScript",
-                        "  file: notNeeded");
+                        "  source: notNeeded");
         setJobData(job, yamlStr);
 
         // When
@@ -407,7 +453,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  action: remove",
                         "  type: \"standalone\"",
                         "  name: myScript",
-                        "  file: notNeeded");
+                        "  source: notNeeded");
         setJobData(job, yamlStr);
 
         // When
@@ -433,6 +479,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  name: myScript");
         setJobData(job, yamlStr);
         ScriptWrapper scriptWrapper = mock(ScriptWrapper.class);
+        when(scriptWrapper.getTypeName()).thenReturn("standalone");
         when(extScript.getScript("myScript")).thenReturn(scriptWrapper);
 
         // When
@@ -458,6 +505,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  name: myScript");
         setJobData(job, yamlStr);
         ScriptWrapper scriptWrapper = new ScriptWrapper();
+        scriptWrapper.setType(new ScriptType("standalone", null, null, false));
         when(extScript.getScript("myScript")).thenReturn(scriptWrapper);
         when(extScript.invokeScript(scriptWrapper))
                 .then(
@@ -479,6 +527,36 @@ class ScriptJobUnitTest extends TestUtils {
         assertThat(progress.hasErrors(), is(equalTo(true)));
         assertThat(progress.getErrors(), contains("!scripts.automation.error.scriptError!"));
         verify(extScript, times(1)).invokeScript(scriptWrapper);
+    }
+
+    @Test
+    void shouldErrorIfRunningUnsupportedScriptType() {
+        // Given
+        ScriptJob job = new ScriptJob();
+        String yamlStr =
+                String.join(
+                        "\n",
+                        "parameters:",
+                        "  action: run",
+                        "  type: \"standalone\"",
+                        "  name: myScript");
+        setJobData(job, yamlStr);
+
+        ScriptWrapper scriptWrapper = mock(ScriptWrapper.class);
+        when(scriptWrapper.getTypeName()).thenReturn("active");
+        when(extScript.getScript("myScript")).thenReturn(scriptWrapper);
+
+        // When
+        job.verifyParameters(progress);
+        job.applyParameters(progress);
+        job.runJob(env, progress);
+
+        // Then
+        assertThat(progress.hasErrors(), is(equalTo(true)));
+        assertThat(progress.hasWarnings(), is(equalTo(false)));
+        assertThat(
+                progress.getErrors(),
+                contains("!scripts.automation.error.scriptTypeNotSupported!"));
     }
 
     @Test
@@ -521,7 +599,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  action: add",
                         "  engine: " + TEST_JS_ENGINE,
                         "  name: NotExisting",
-                        "  file: " + f.getAbsolutePath());
+                        "  source: " + f.getAbsolutePath());
         setJobData(job, yamlStr);
 
         // When
@@ -548,7 +626,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  type: \"unknown\"",
                         "  engine: " + TEST_JS_ENGINE,
                         "  name: NotExisting",
-                        "  file: " + f.getAbsolutePath());
+                        "  source: " + f.getAbsolutePath());
         setJobData(job, yamlStr);
 
         // When
@@ -610,7 +688,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  action: add",
                         "  type: \"standalone\"",
                         "  engine: " + TEST_JS_ENGINE,
-                        "  file: " + f.getAbsolutePath());
+                        "  source: " + f.getAbsolutePath());
         setJobData(job, yamlStr);
         job.setPlan(plan);
         env.setPlan(plan);
@@ -674,7 +752,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  engine: " + TEST_JS_ENGINE,
                         "  name: test",
                         "  inline: test",
-                        "  file: test");
+                        "  source: test");
         setJobData(job, yamlStr);
         job.setPlan(plan);
         env.setPlan(plan);
@@ -708,7 +786,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  type: \"standalone\"",
                         "  engine: " + TEST_JS_ENGINE,
                         "  name: CannotRead",
-                        "  file: " + f.getAbsolutePath());
+                        "  source: " + f.getAbsolutePath());
         setJobData(job, yamlStr);
 
         // When
@@ -748,7 +826,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  type: \"standalone\"",
                         "  engine: " + TEST_JS_ENGINE,
                         "  name: NotExisting",
-                        "  file: " + f.getParent());
+                        "  source: " + f.getParent());
         setJobData(job, yamlStr);
 
         // When
@@ -778,7 +856,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  action: add",
                         "  type: \"standalone\"",
                         "  name: NotExisting",
-                        "  file: " + f.getAbsolutePath());
+                        "  source: " + f.getAbsolutePath());
         setJobData(job, yamlStr);
 
         // When
@@ -809,7 +887,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  type: \"standalone\"",
                         "  engine: " + TEST_JS_ENGINE,
                         "  name: NotExisting",
-                        "  file: " + f.getAbsolutePath());
+                        "  source: " + f.getAbsolutePath());
         setJobData(job, yamlStr);
 
         // When
@@ -839,7 +917,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  type: \"standalone\"",
                         "  engine: " + TEST_JS_ENGINE,
                         "  name: NotExisting",
-                        "  file: " + f.getAbsolutePath());
+                        "  source: " + f.getAbsolutePath());
         setJobData(job, yamlStr);
         ArgumentCaptor<ScriptWrapper> argument = ArgumentCaptor.forClass(ScriptWrapper.class);
         job.setPlan(plan);
@@ -876,7 +954,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  type: \"standalone\"",
                         "  engine: " + TEST_JS_ENGINE,
                         "  name: NotExisting",
-                        "  file: " + f.getName());
+                        "  source: " + f.getName());
         setJobData(job, yamlStr);
         ArgumentCaptor<ScriptWrapper> argument = ArgumentCaptor.forClass(ScriptWrapper.class);
         job.setPlan(plan);
@@ -912,7 +990,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "  type: \"standalone\"",
                         "  name: " + f.getName(),
                         "  engine: " + TEST_JS_ENGINE,
-                        "  file: " + f.getAbsolutePath());
+                        "  source: " + f.getAbsolutePath());
         setJobData(job, yamlStr);
         ArgumentCaptor<ScriptWrapper> argument = ArgumentCaptor.forClass(ScriptWrapper.class);
         job.setPlan(plan);
@@ -1066,7 +1144,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "parameters:",
                         "  action: enable",
                         "  name: myScript",
-                        "  file: notNeeded");
+                        "  source: notNeeded");
         setJobData(job, yamlStr);
 
         // When
@@ -1168,7 +1246,7 @@ class ScriptJobUnitTest extends TestUtils {
                         "parameters:",
                         "  action: disable",
                         "  name: myScript",
-                        "  file: notNeeded");
+                        "  source: notNeeded");
         setJobData(job, yamlStr);
 
         // When
